@@ -1,8 +1,8 @@
 # ECS 153 Final Project
-This repository holds our final project for ECS 153.
 
-TODO:
-- We need an explicit "one sentence description" for our project.
+Our project seeks to implement the Vuvuzela private message network.  The specifications of Vuvuzela are described in the paper below. We have loosly followed the specification and have made our own modifications to experiment.
+
+# Usage
 
 Papers to read:
 - [Vuvuzela](https://vuvuzela.io/static/vuvuzela.pdf).
