@@ -1,1 +1,9 @@
-https://docs.google.com/document/d/10nMjNPTsbuV2r6o-UHmgdagrFdZWLOwBi6AmYC5qR0w/edit?usp=sharing
+# Torzela: Scaling Vuvuzela
+
+In today’s always-connected world, private messaging is more important than ever before. Conversations should be kept private regardless of what the topic may be, whether it is two people planning their friend’s surprise party or a government employee leaking classified information to the press. Messaging apps today try their best to make messaging private through end-to-end encryption or having messages delete themselves after they are read. However, this does not hide metadata. An attacker can gain critical information just by observing the parties that are communicating, such as a conversation between a government agent and a journalist.  
+
+Current private networks have flaws which impact their ability to serve this need.  While providing strong privacy guarantees, Vuvuzela falls short since it does not have the ability to scale.  Because Vuvuzela is based on a linear chain of servers, it has no fault tolerance.  Other private networks such as Tor have been shown to contain flaws which leak information about a user.  
+
+We propose Torzela, a new messaging system that protects metadata and ensures strong privacy guarantees by hiding both message data and metadata, while also scaling better than its predecessor. Our goal is to extend Vuvuzela by implementing multiple independent chains of servers. The last layer will hold multiple dead drop servers, with the last layer before the dead drops expanding to an all-to-all communication system that allows any chain to access any dead drop. With this, Torzela will be able to scale. In addition, noise will be generated to conceal the real messages being sent.  
+
+Torzela is expected to provide the same anonymity guarantees of Vuvuzela, in addition to greater scalability. In particular, Torzela must be able to handle a topology with multiple entry points and multiple dead drops. Detailed analysis of these improvements will also be provided.
