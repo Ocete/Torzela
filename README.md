@@ -7,3 +7,10 @@ Our project seeks to implement the Vuvuzela private message network.  The specif
 Papers to read:
 - [Vuvuzela](https://vuvuzela.io/static/vuvuzela.pdf).
 - [Alpenhorn](https://vuvuzela.io/static/alpenhorn.pdf).
+
+## Authors
+
+- José Antonio Álvarez
+- Matthew Donnelly
+- Skyler Bala
+- Edric Tom
