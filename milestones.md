@@ -7,7 +7,10 @@
 ### Weekly Meeting Notes
 https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/edit?usp=sharing
 
-- Skyler Bala  
+### Video Overview of Project
+https://www.youtube.com/watch?v=GLXdrHr1E7A
+
+### Weekly Summary for Group Members
 
 - Matthew Donnelly  
 	(1) Initial work on networking code  
@@ -27,3 +30,5 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 	(1) Wrote initial version of the project proposal, with the others editing and changing it as they see fit     
       	(2) Begin studying and mapping out code for the dead drops, start writing code if ready     
       	(3) Nothing     
+
+- Skyler Bala  
