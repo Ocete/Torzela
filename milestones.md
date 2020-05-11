@@ -3,6 +3,10 @@
 "For everyone in the group include one sentence on each of these (1) what you did last week (2) what you plan to do this week (3) anything you are stuck on.  Also include links to any PRs you committed or design docs you wrote"
 
 ## Week of May 4th
+
+### Weekly Meeting Notes
+https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/edit?usp=sharing
+
 - Skyler Bala  
 
 - Matthew Donnelly  
@@ -19,4 +23,7 @@
 	(2) Finish Project Proposal and deliver a final version of the Communication Protocol Design Doc  
 	(3) Nothing yet
 
-- Edric Tom  
+- Edric Tom     
+	(1) Wrote initial version of the project proposal, with the others editing and changing it as they see fit     
+      	(2) Begin studying and mapping out code for the dead drops, start writing code if ready     
+      	(3) Nothing     
