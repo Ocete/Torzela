@@ -28,7 +28,7 @@ https://www.youtube.com/watch?v=GLXdrHr1E7A
 		https://github.com/Ocete/ECS-153-Final-project/commit/52119700760c94db97852cf910714a635f21e178  
 
 - Jose Antonio Alvarez Ocete  
-	(1) Wrote Conversational Protocol Subsystem design doc and General Overview design doc.  
+	(1) Wrote Conversation Protocol Subsystem design doc and General Overview design doc.  
 	(2) Complete Conversational Protocol Subsystem to work as Vuvuzela.  
 	(3) Nothing yet  
 
