@@ -30,7 +30,7 @@ https://www.youtube.com/watch?v=GLXdrHr1E7A
 - Jose Antonio Alvarez Ocete  
 	1. Wrote Conversation Protocol Subsystem design doc and General Overview design doc.  
 	2. Complete Conversational Protocol Subsystem to work as Vuvuzela.  
-	3. Nothing yet  
+	3. How to implement the recovery of the system when a server dies without giving away information of which users where connected to which dead drop. 
 
 - Edric Tom  
 	1. Wrote initial version of the project proposal, with the others editing and changing it as they see fit  
