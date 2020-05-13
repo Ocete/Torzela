@@ -17,7 +17,7 @@ https://docs.google.com/document/d/1JHVycZ2zotkthxrbSYLup1sxdetJZ5CLNzX9JL5hSAc/
 
 ## Dead Drops Subsystem (Edric Tom)
 
-[TODO]: complete with basic description of the subsystem.
+This subsystem handles the message exchange process, where one client deposits a message and another client picks it up. This ensures that adversaries are unable to identify who is talking to who by looking at access patterns.     
 https://docs.google.com/document/d/1UwTi2pzKUIhbZcCzO_i3td9yvJVwlYcYBza1qwFD8DY/edit?usp=sharing
 
 ## Dialing Protocol Subsystem (Skyler Bala)
