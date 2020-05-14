@@ -6,11 +6,11 @@ For everyone in the group include one sentence on each of these:
 	3. Anything you are stuck on.  
 Also include links to any PRs you committed or design docs you wrote.
 
-## Week of May 4th
-
 ### Weekly Meeting Notes
 
 https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/edit?usp=sharing
+
+## Week of May 4th
 
 ### Video Overview of Project
 
