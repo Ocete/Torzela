@@ -6,9 +6,45 @@ For everyone in the group include one sentence on each of these:
 	3. Anything you are stuck on.  
 Also include links to any PRs you committed or design docs you wrote.
 
+
 ### Weekly Meeting Notes
 
 https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/edit?usp=sharing
+
+
+## Week of May 11th
+
+### Video 
+(TODO: Who wants to take it this week?)
+
+### Weekly Summary for Group Members
+- Matthew Donnelly  
+	1. Pushed roughly 500 lines of networking code. This is a significant portion of the networking subsystem. Also made 3 minute video for project overview and networking subsystem design doc.
+	2. I have already finished most of what I need to do in this project, so at this point I am mainly in maintenance mode for the networking subsystem and helping my group members as needed. 
+	3. None
+	**PRs**:
+		https://github.com/Ocete/ECS-153-Final-project/commit/2cf0ec6b185240c0d70ed2b7a00f1fe4947b1d98
+		https://github.com/Ocete/ECS-153-Final-project/commit/2ad150037b52b7a376514ad3bce240fd526dbcd2
+		https://github.com/Ocete/ECS-153-Final-project/commit/a8af6d5fea6a8d15c0aca721bc86f4cd854be7fb
+		https://github.com/Ocete/ECS-153-Final-project/commit/56c90df5da0ba4f69aef4563e7d393ee5c880413
+		https://github.com/Ocete/ECS-153-Final-project/commit/3307cac28d91cf767b217e97bac6a7890aeaaaf8
+		https://github.com/Ocete/ECS-153-Final-project/commit/e7ca1472099a8696272843d6957b0e8bcb1bcb14
+		https://github.com/Ocete/ECS-153-Final-project/commit/918f3b4e058612e2f1b88deed913459a0dfb7a0b
+		https://github.com/Ocete/ECS-153-Final-project/commit/fcf7bd9907f55f8e300eb0f34f7e41c5f26c4772
+
+- Jose Antonio Alvarez Ocete  
+	1.
+	2.
+	3.
+
+- Edric Tom  
+	1.
+	2.
+	3.
+
+- Skyler Bala  
+	(In case he shows up...)
+
 
 ## Week of May 4th
 
