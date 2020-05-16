@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
 
 import socket
-import sys
 import threading
 import time
 from message import Message
 
+# For the encryption
+import os
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import dh
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
 class Client:
+    
+   # Generate a pair of public and private keys
+   def generateKeys(self):
+      privateKey = self.keyGenerator.generate_private_key()
+      publicKey = privateKey.public_key()
+      return privateKey, publicKey
+   
    # Configure the client with the IP and Port of the next server
-   def __init__(self, serverIP, serverPort, localPort, publicKey):
+   def __init__(self, serverIP, serverPort, localPort):
       # serverIP and serverPort is the IP and port of the next
       # server in the chain
       self.serverIP = serverIP
@@ -18,9 +32,12 @@ class Client:
       # will listen on this port
       self.localPort = localPort
   
-      # The public key of the client. Used by the front server
-      # to determine where to send a packet
-      self.publicKey = publicKey
+      # Will be used to create multiple key when sending each message
+      self.keyGenerator = dh.generate_parameters(generator=2, key_size=512, 
+                                                 backend=default_backend())
+   
+      # The client keys
+      self.private, self.publicKey = self.generateKeys()
 
       # We need to spawn off a thread here, else we will block the
       # entire program (i.e. if we create the client then the server
@@ -28,6 +45,26 @@ class Client:
       # the server to come up...but that can't happen until the
       # client is done configuring, so we would end up with deadlock)
       threading.Thread(target=self.setupConnection, args=()).start()
+      
+      # The chain this client belongs to. It is provided by the Front
+      # Server after the first connection.
+      self.myChain = -1
+      
+      # The public keys from the n-1 servers in your chain.
+      # Index 0 is the Front Server will index n-2 (the last one) is
+      # the Spreading Server. These are provided by the Front Server 
+      # after the first connection
+      self.chainServersPublicKeys = []
+      
+      # The public keys from all the Dead Drops Servers.
+      self.deadDropServersPublicKeys = []
+   
+      # The size of the messages. This value is provided by the Front Server
+      # Warning: this value must be multiple of block_size used in the
+      # encryption/dercyption, currently set to 16
+      self.messageSize = 256
+      
+      # TODO: myChain, messageSize and the server keys must be obtained from the Front Server
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -93,3 +130,81 @@ class Client:
       m.loadFromString(recvStr)
       
       return m
+   
+   def computeSharedSecret(myPrivateKey, otherPublicKey):
+      shared_key = myPrivateKey.exchange(otherPublicKey)
+
+      sharedSecret = HKDF(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=None,
+            info=b'handshake data',
+            backend=default_backend()
+         ).derive(shared_key)   
+      
+      return sharedSecret
+      
+   # Encrypt the message using symmetric encryption.
+   # sharedSecret is the shared secret and msg is a string containing the 
+   # message to encrypt. Returns a stream of bytes
+   def encryptMessage(sharedSecret, msg):
+      # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
+      block_size = 16
+      iv = os.urandom(block_size)
+      cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
+      encryptor = cipher.encryptor()
+      return encryptor.update(msg.encode()) + encryptor.finalize()
+      
+   # Decrypt the message using symmetric encryption.
+   # sharedSecret is the shared secret and msg is an array of bytes containing
+   # the encrypted message. Returns a string
+   def decryptMessage(sharedSecret, msg):
+      # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
+      block_size = 16
+      iv = os.urandom(block_size)
+      cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
+      decryptor = cipher.decryptor()
+      return decryptor.update(ct) + decryptor.finalize()
+   
+
+# Key generator
+
+parameters = dh.generate_parameters(generator=2, key_size=512, backend=default_backend())
+
+a_private_key = parameters.generate_private_key()
+a_peer_public_key = a_private_key.public_key()
+
+b_private_key = parameters.generate_private_key()
+b_peer_public_key = b_private_key.public_key()
+
+a_shared_key = a_private_key.exchange(b_peer_public_key)
+b_shared_key = b_private_key.exchange(a_peer_public_key)
+
+derived_key = HKDF(
+      algorithm=hashes.SHA256(),
+      length=32,
+      salt=None,
+      info=b'handshake data',
+      backend=default_backend()
+   ).derive(a_shared_key)      
+
+msg = "16 chars msg...."
+
+
+backend = default_backend()
+# the msg must be multiple of block_size
+block_size = 16
+iv = os.urandom(block_size)
+cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
+encryptor = cipher.encryptor()
+ct = encryptor.update(msg.encode()) + encryptor.finalize()
+decryptor = cipher.decryptor()
+decryptor.update(ct) + decryptor.finalize()
+      
+
+      
+      
+      
+      
+      
+      
