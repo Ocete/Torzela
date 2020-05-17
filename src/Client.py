@@ -3,24 +3,12 @@
 import socket
 import threading
 import time
+import sys
 from message import Message
+import TorzelaUtils as TU
 
 # For the encryption
-import os
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import dh
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-class Client:
-    
-   # Generate a pair of public and private keys
-   def generateKeys(self):
-      privateKey = self.keyGenerator.generate_private_key()
-      publicKey = privateKey.public_key()
-      return privateKey, publicKey
-   
+class Client:   
    # Configure the client with the IP and Port of the next server
    def __init__(self, serverIP, serverPort, localPort):
       # serverIP and serverPort is the IP and port of the next
@@ -33,11 +21,10 @@ class Client:
       self.localPort = localPort
   
       # Will be used to create multiple key when sending each message
-      self.keyGenerator = dh.generate_parameters(generator=2, key_size=512, 
-                                                 backend=default_backend())
+      self.keyGenerator = TU.createKeyGenerator()
    
-      # The client keys
-      self.private, self.publicKey = self.generateKeys()
+      # Create the client keys
+      self.privateKey, self.publicKey = TU.generateKeys(self.keyGenerator)
 
       # We need to spawn off a thread here, else we will block the
       # entire program (i.e. if we create the client then the server
@@ -46,9 +33,18 @@ class Client:
       # client is done configuring, so we would end up with deadlock)
       threading.Thread(target=self.setupConnection, args=()).start()
       
+      # TODO: We get to know this key through the Dialing Protocol
+      self.partnerPublicKey = ""
+      
+      # TODO: All the following values must be obtained from the Front Server(?)
+      
       # The chain this client belongs to. It is provided by the Front
       # Server after the first connection.
       self.myChain = -1
+      
+      # number of dead drops and dead drop servers
+      self.nDD = 2**128
+      self.nDDS = 1
       
       # The public keys from the n-1 servers in your chain.
       # Index 0 is the Front Server will index n-2 (the last one) is
@@ -63,8 +59,6 @@ class Client:
       # Warning: this value must be multiple of block_size used in the
       # encryption/dercyption, currently set to 16
       self.messageSize = 256
-      
-      # TODO: myChain, messageSize and the server keys must be obtained from the Front Server
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -94,7 +88,30 @@ class Client:
       # Close the connection after we verify everything is working
       self.sock.close()
 
+   # Returns the dead drop chosen and the dead drop server where it's found.
+   def computeDeadDrop(self, sharedSecret, round):
+      aux = int.from_bytes(sharedSecret, byteorder=sys.byteorder) * round
+      deadDrop = aux // self.nDD
+      deadDropServer = deadDrop // self.nDDS
+      return deadDrop, deadDropServer
 
+   # Applies onion routing to the messages and fits in it all the information
+   # needed for the servers.
+   def prepareMessage(self, msg, round):
+      
+      ppk = self.partnerPublicKey
+      # If we are not currently talking to anyone, create a fake message
+      # and a fake reciever
+      if self.partnerPublicKey == "":
+         _, ppk = TU.generateKeys(self.keyGenerator)
+         msg = ''.join([ '-' for _ in range(self.messageSize)])
+       
+      sharedSecret = TU.computeSharedSecret(self.privateKey, ppk)
+      deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret, round)
+      e = TU.encryptMessage(sharedSecret, msg)
+      
+      return msg
+   
    # Send and receive a message from Torzela
    # Because we always receive a response, it doesn't
    # make sense to have two separate send and receive methods
@@ -130,81 +147,4 @@ class Client:
       m.loadFromString(recvStr)
       
       return m
-   
-   def computeSharedSecret(myPrivateKey, otherPublicKey):
-      shared_key = myPrivateKey.exchange(otherPublicKey)
-
-      sharedSecret = HKDF(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=None,
-            info=b'handshake data',
-            backend=default_backend()
-         ).derive(shared_key)   
-      
-      return sharedSecret
-      
-   # Encrypt the message using symmetric encryption.
-   # sharedSecret is the shared secret and msg is a string containing the 
-   # message to encrypt. Returns a stream of bytes
-   def encryptMessage(sharedSecret, msg):
-      # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
-      block_size = 16
-      iv = os.urandom(block_size)
-      cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
-      encryptor = cipher.encryptor()
-      return encryptor.update(msg.encode()) + encryptor.finalize()
-      
-   # Decrypt the message using symmetric encryption.
-   # sharedSecret is the shared secret and msg is an array of bytes containing
-   # the encrypted message. Returns a string
-   def decryptMessage(sharedSecret, msg):
-      # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
-      block_size = 16
-      iv = os.urandom(block_size)
-      cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
-      decryptor = cipher.decryptor()
-      return decryptor.update(ct) + decryptor.finalize()
-   
-
-# Key generator
-
-parameters = dh.generate_parameters(generator=2, key_size=512, backend=default_backend())
-
-a_private_key = parameters.generate_private_key()
-a_peer_public_key = a_private_key.public_key()
-
-b_private_key = parameters.generate_private_key()
-b_peer_public_key = b_private_key.public_key()
-
-a_shared_key = a_private_key.exchange(b_peer_public_key)
-b_shared_key = b_private_key.exchange(a_peer_public_key)
-
-derived_key = HKDF(
-      algorithm=hashes.SHA256(),
-      length=32,
-      salt=None,
-      info=b'handshake data',
-      backend=default_backend()
-   ).derive(a_shared_key)      
-
-msg = "16 chars msg...."
-
-
-backend = default_backend()
-# the msg must be multiple of block_size
-block_size = 16
-iv = os.urandom(block_size)
-cipher = Cipher(algorithms.AES(derived_key), modes.CBC(iv), backend=backend)
-encryptor = cipher.encryptor()
-ct = encryptor.update(msg.encode()) + encryptor.finalize()
-decryptor = cipher.decryptor()
-decryptor.update(ct) + decryptor.finalize()
-      
-
-      
-      
-      
-      
-      
       

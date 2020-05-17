@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import socket
-import sys
 import threading
 import time
 from message import Message
@@ -9,7 +8,7 @@ from message import Message
 class FrontServer:
    # Set the IP and Port of the next server. Also set the listening port
    # for incoming connections. The next server in the chain can
-   # be a Middle Server or even a Dead Drop Server
+   # be a Middle Server or even a Spreading Server
    def __init__(self, nextServerIP, nextServerPort, localPort):
       self.nextServerIP = nextServerIP
       self.nextServerPort = nextServerPort
