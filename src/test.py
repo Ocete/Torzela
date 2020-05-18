@@ -16,7 +16,7 @@ from DeadDrop import DeadDrop
 
 # We can do any kind of test we want in here...
 
-c = Client('localhost', 7777, 7776, "client_public_key")
+c = Client('localhost', 7777, 7776)
 s = FrontServer('localhost', 7778, 7777)
 m = MiddleServer('localhost', 7779, 7778)
 s = SpreadingServer([('localhost', 7780)], 7779)
