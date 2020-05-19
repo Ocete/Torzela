@@ -14,15 +14,15 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 
 ## Week of May 11th
 
-### Video 
-(TODO: Who wants to take it this week?)
+### Video
+TODO: Jose and Edric
 
 ### Weekly Summary for Group Members
 - Matthew Donnelly  
 	1. Pushed roughly 500 lines of networking code. This is a significant portion of the networking subsystem. Also made 3 minute video for project overview and networking subsystem design doc.
-	2. I have already finished most of what I need to do in this project, so at this point I am mainly in maintenance mode for the networking subsystem and helping my group members as needed. 
-	3. None
-	**PRs**:
+	2. I have already finished most of what I need to do in this project, so at this point I am mainly in maintenance mode for the networking subsystem and helping my group members as needed.
+	3. None  
+	**PRs**:  
 		https://github.com/Ocete/ECS-153-Final-project/commit/2cf0ec6b185240c0d70ed2b7a00f1fe4947b1d98
 		https://github.com/Ocete/ECS-153-Final-project/commit/2ad150037b52b7a376514ad3bce240fd526dbcd2
 		https://github.com/Ocete/ECS-153-Final-project/commit/a8af6d5fea6a8d15c0aca721bc86f4cd854be7fb
@@ -33,9 +33,15 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 		https://github.com/Ocete/ECS-153-Final-project/commit/fcf7bd9907f55f8e300eb0f34f7e41c5f26c4772
 
 - Jose Antonio Alvarez Ocete  
-	1.
-	2.
-	3.
+	1. Working on the onion routing section for the client.
+	2. Finish onion routing and mixnet. The noise addition will be also added if I have the time.
+	3. Bytes/strings conversions in python is giving me some headaches. Not sure if this is because the encryption is wrong so I've been adding some basic tests to make sure those functionalities are okay.  
+	**PRs:**  
+		https://github.com/Ocete/ECS-153-Final-project/commit/f24694897a056ca33c324be078197272de6202c4  
+		https://github.com/Ocete/ECS-153-Final-project/commit/29d6f8555d167bb7bdf47d470e021a764946c9af  
+  **DDs (forgot to link them last week):**
+		https://docs.google.com/document/d/1VZZLnERFplL6Zhgi-mZC8WDIzLizYSsjkA2ecijUYr0/edit#heading=h.iy904ins94pq
+		https://docs.google.com/document/d/1JHVycZ2zotkthxrbSYLup1sxdetJZ5CLNzX9JL5hSAc/edit#heading=h.iy904ins94pq
 
 - Edric Tom  
 	1.
@@ -66,7 +72,7 @@ https://www.youtube.com/watch?v=GLXdrHr1E7A
 - Jose Antonio Alvarez Ocete  
 	1. Wrote Conversation Protocol Subsystem design doc and General Overview design doc.  
 	2. Complete Conversational Protocol Subsystem to work as Vuvuzela.  
-	3. How to implement the recovery of the system when a server dies without giving away information of which users where connected to which dead drop. 
+	3. How to implement the recovery of the system when a server dies without giving away information of which users where connected to which dead drop.
 
 - Edric Tom  
 	1. Wrote initial version of the project proposal, with the others editing and changing it as they see fit  
