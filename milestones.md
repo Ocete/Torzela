@@ -15,7 +15,8 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 ## Week of May 11th
 
 ### Video
-TODO: Jose and Edric
+
+https://youtu.be/57an9dxj568
 
 ### Weekly Summary for Group Members
 - Matthew Donnelly  
@@ -44,9 +45,9 @@ TODO: Jose and Edric
 		https://docs.google.com/document/d/1JHVycZ2zotkthxrbSYLup1sxdetJZ5CLNzX9JL5hSAc/edit#heading=h.iy904ins94pq
 
 - Edric Tom  
-	1. Began implementing the dead drop subsystem, halfway done with dead drop design doc, and started implementing the server rounds.    
-	2. Finish implementing the dead drop subsystem and server rounds, in addition to completing the design doc.      
-	3. Translating the Vuvuzela code from Go to Python is giving me minor issues, as I'm only familiar with the basics of Python. Understanding how the code is written for each subsystem and how they interface with each other is also taking some time.    
+	1. Began implementing the dead drop subsystem, halfway done with dead drop design doc, and started implementing the server rounds.  
+	2. Finish implementing the dead drop subsystem and server rounds, in addition to completing the design doc.   
+	3. Translating the Vuvuzela code from Go to Python is giving me minor issues, as I'm only familiar with the basics of Python. Understanding how the code is written for each subsystem and how they interface with each other is also taking some time.  
 	**PRs:**  
 		https://github.com/Ocete/ECS-153-Final-project/commit/a669d31aa2b1d1e880759695da4be1c44dc9044f    
 		https://github.com/Ocete/ECS-153-Final-project/commit/67afbd680fac03cec4491832e58c55876c902df0      
