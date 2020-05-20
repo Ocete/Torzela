@@ -44,9 +44,14 @@ TODO: Jose and Edric
 		https://docs.google.com/document/d/1JHVycZ2zotkthxrbSYLup1sxdetJZ5CLNzX9JL5hSAc/edit#heading=h.iy904ins94pq
 
 - Edric Tom  
-	1.
-	2.
-	3.
+	1. Began implementing the dead drop subsystem, halfway done with dead drop design doc, and started implementing the server rounds.    
+	2. Finish implementing the dead drop subsystem and server rounds, in addition to completing the design doc.      
+	3. Translating the Vuvuzela code from Go to Python is giving me minor issues, as I'm only familiar with the basics of Python. Understanding how the code is written for each subsystem and how they interface with each other is also taking some time.    
+	**PRs:**  
+		https://github.com/Ocete/ECS-153-Final-project/commit/a669d31aa2b1d1e880759695da4be1c44dc9044f    
+		https://github.com/Ocete/ECS-153-Final-project/commit/67afbd680fac03cec4491832e58c55876c902df0      
+ 	**DDs:**
+		https://docs.google.com/document/d/1UwTi2pzKUIhbZcCzO_i3td9yvJVwlYcYBza1qwFD8DY/edit?usp=sharing
 
 - Skyler Bala  
 	(In case he shows up...)
