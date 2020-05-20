@@ -11,6 +11,33 @@ Also include links to any PRs you committed or design docs you wrote.
 
 https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/edit?usp=sharing
 
+## Week of May 18th
+
+### Video
+   (TODO: Edric, you want to take it this week?)
+
+### Weekly Summary for Group Members
+
+- Matthew Donnelly
+	1. A few commits to milestones.md.  I finished most of my part early on since it's the first piece that needed to get done.  At this point, I am just in maintenance mode if any problems come up with the networking code.
+	2. Start thinking about the final project, presentation, video, etc. 
+	3. Nothing  
+
+- Jose Antonio Alvarez Ocete  
+	1.  
+	2.  
+	3.  
+
+- Edric Tom  
+	1.  
+	2.  
+	3.  
+
+- Skyler Bala  
+	1.  
+	2.  
+	3.  
+
 
 ## Week of May 11th
 
