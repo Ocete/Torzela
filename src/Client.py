@@ -54,6 +54,9 @@ class Client:
       
       # The public keys from all the Dead Drops Servers.
       self.deadDropServersPublicKeys = []
+      
+      # Temporary keys. They are computed for each sent message.
+      self.temporaryKeys = []
    
       # The size of the messages. This value is provided by the Front Server
       # Warning: this value must be multiple of block_size used in the
@@ -95,20 +98,40 @@ class Client:
       deadDropServer = deadDrop // self.nDDS
       return deadDrop, deadDropServer
 
+   # Creates a pair (sk, pk) for each server in the chain + the dead drop server.
+   def generateTemporaryKeys(self):
+      self.temporaryKeys = []
+      for _ in range( len(self.chainServersPublicKeys) + 1):
+         self.temporaryKeys.append( TU.generateKeys(self.keyGenerator) )
+
    # Applies onion routing to the messages and fits in it all the information
-   # needed for the servers.
+   # needed for the servers. Returns a string
    def prepareMessage(self, msg, round):
+      self.generateTemporaryKeys()
       
       ppk = self.partnerPublicKey
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
       if self.partnerPublicKey == "":
          _, ppk = TU.generateKeys(self.keyGenerator)
-         msg = ''.join([ '-' for _ in range(self.messageSize)])
+         msg = TU.createRandomMessage(self.messageSize)
        
+      # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.privateKey, ppk)
       deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret, round)
-      e = TU.encryptMessage(sharedSecret, msg)
+      msg = TU.encryptMessage(sharedSecret, msg)
+      
+      # Compute the message for the Dead Drop Server. It includes how to 
+      # send it back (the chain) and the dead drop.
+      # It has the following form: 
+      # Before encryption: "myChain#deadDrop#msg"
+      # After encryption: "deadDropServer#pk#encrypted_msg"
+      msg = "{}#{}#{}".format(self.myChain, deadDrop, msg.decode("latin_1"))
+      server_pk = self.deadDropServersPublicKeys[deadDropServer]
+      local_keys = self.temporaryKeys[-1]
+      sharedSecret = TU.computeSharedSecret(local_keys[0], server_pk)
+      msg = TU.encryptMessage(sharedSecret, msg)
+      msg = "{}#{}#{}".format(deadDropServer, local_keys[1], msg)
       
       return msg
    
