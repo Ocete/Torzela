@@ -35,7 +35,7 @@ class DeadDrop:
          print("Dead Drop accepted connection from " + str(client_addr))
 
          # Spawn a thread to handle the connection
-         threading.Thread(target=self.handleMsg, args=(conn, client_addr,)).start()
+         threading.Thread(target=self.handleMsg, args=(conn, client_addr)).start()
    
    # This runs in a thread and handles connections from other servers
    def handleMsg(self, conn, client_addr):
@@ -54,11 +54,13 @@ class DeadDrop:
          serverEntry = (client_addr[0], clientMsg.getPayload())
          if serverEntry not in self.previousServers:
             self.previousServers.append(serverEntry)
+
+      # Check if the packet is for sending a message
       elif clientMsg.getNetInfo() == 1: 
          # Forward packet back. Whoever handles the dead drops
          # will be working here mainly. Right now this just
          # sends the packet back to all connected clients
-      
+
          # First, close the connection. This may seem
          # weird, but at this point we already have the message
          # and are going to send the message back to all of the 
@@ -77,3 +79,4 @@ class DeadDrop:
             tempSock.connect((prevServerIP, prevServerPort))
             tempSock.sendall(str.encode(str(clientMsg)))
             tempSock.close()
+         

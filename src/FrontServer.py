@@ -2,8 +2,23 @@
 
 import socket
 import threading
+import asyncio
 import time
 from message import Message
+
+# Initialize a class specifically for the round info.
+# This class will track if a round is currently ongoing or not, the
+# actual identifying number of the round, the time it ended, the hash
+# configuration, and the lock (so that no other messages are sent during
+# the time of the round)
+class RoundInfo:
+   def __init__(self, newRound, configHash, endTime):
+      self.open = True
+      self.round = newRound
+      self.configHash = configHash
+      self.endTime = endTime
+      self.lock = asyncio.Lock()
+
 
 class FrontServer:
    # Set the IP and Port of the next server. Also set the listening port
@@ -13,6 +28,13 @@ class FrontServer:
       self.nextServerIP = nextServerIP
       self.nextServerPort = nextServerPort
       self.localPort = localPort
+
+      # Initialize round variables. This will allow us to track what
+      # current round the server is on, in addition to the state that the
+      # previous rounds are in
+      self.roundID = 1
+      self.rounds = {}
+      self.lock = asyncio.Lock()
 
       # This will allow us to associate a client with it's public key
       # So that we can figure out which client should get which packet
@@ -111,3 +133,13 @@ class FrontServer:
             tempSock.connect((clientIP,clientPort))
             tempSock.sendall(str.encode(str(clientMsg)))
             tempSock.close()
+   
+   # Run server round
+   async def runRound(self, ctx, round, deadline):
+      # Create the new round using our class above
+      currentRound = RoundInfo(round, ctx, deadline)
+
+      # Add new round to the server's ongoing dictionary of rounds
+      async with self.lock:
+         self.rounds[round] = currentRound
+      
