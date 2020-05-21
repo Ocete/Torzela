@@ -5,6 +5,10 @@ from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+
+from random import randrange
+
 from string import ascii_letters
 from random import choice
 
@@ -29,7 +33,7 @@ def generateKeys(keyGenerator):
    publicKey = privateKey.public_key()
    return privateKey, publicKey
 
-def computeSharedSecret(myPrivateKey, otherPublicKey):
+def computeSharedSecret(myPrivateKey, otherPublicKey):   
    shared_key = myPrivateKey.exchange(otherPublicKey)
 
    sharedSecret = HKDF(
@@ -48,12 +52,12 @@ def computeSharedSecret(myPrivateKey, otherPublicKey):
 # Warning: the cipher used must be the same for encryption than for decryption. 
 def encryptMessage(shared_secret, msg):
    # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
-   #   padder = padding.PKCS7(algorithms.AES.block_size).padder()
-   #     padded_data = padder.update(data) + padder.finalize()
+   padder = padding.PKCS7(128).padder()
+   padded_data = padder.update(msg.encode()) + padder.finalize()
    
    cipher = createCipher(shared_secret)
    encryptor = cipher.encryptor()
-   e = encryptor.update(msg.encode()) + encryptor.finalize()
+   e = encryptor.update(padded_data) + encryptor.finalize()
    return e
 
 # Decrypt the message using symmetric encryption.
@@ -61,13 +65,14 @@ def encryptMessage(shared_secret, msg):
 # the encrypted message. Returns a string
 def decryptMessage(shared_secret, msg):
    # TODO: fix msg size to 256. Give an error if len(msg) > msg_size
-   # unpadder = PKCS7(128).unpadder()
-   #	 decrypted = unpadder.update(plain)
-   
    cipher = createCipher(shared_secret)
    decryptor = cipher.decryptor()
    dt = decryptor.update(msg) + decryptor.finalize()
-   return dt.decode()
+   
+   unpadder = padding.PKCS7(128).unpadder()
+   unpadded_data = unpadder.update(dt) + unpadder.finalize()
+   
+   return unpadded_data.decode()
 
 
 def testEncryption():
@@ -75,22 +80,29 @@ def testEncryption():
    
    a_private_key, a_public_key = generateKeys(keyGenerator)
    b_private_key, b_public_key = generateKeys(keyGenerator)
+   error = False
    
-   msg = "16 chars msg...."
-   
-   # Alice encrypts the message using her private key and Bob's public key
-   a_shared_secret = computeSharedSecret(a_private_key, b_public_key)
-   e = encryptMessage(a_shared_secret, msg)
-   
-   # Bob decrypts the message using his private key and Alice's public key
-   b_shared_secret = computeSharedSecret(b_private_key, a_public_key)
-   answer = decryptMessage(b_shared_secret, e)
-   
-   if a_shared_secret != b_shared_secret:
-      print("FAILURE: shared secret different")
-   elif answer != msg:
-      print("FAILURE: on encryption")
-   else:
+   for _ in range(10000):
+      size = randrange(10, 256)
+      msg = createRandomMessage(size)
+      
+      # Alice encrypts the message using her private key and Bob's public key
+      a_shared_secret = computeSharedSecret(a_private_key, b_public_key)
+      e = encryptMessage(a_shared_secret, msg)
+      
+      # Bob decrypts the message using his private key and Alice's public key
+      b_shared_secret = computeSharedSecret(b_private_key, a_public_key)
+      answer = decryptMessage(b_shared_secret, e)
+      
+      error = error or a_shared_secret != b_shared_secret or answer != msg
+      if a_shared_secret != b_shared_secret:
+         print("FAILURE: shared secret different")
+         error = True
+      elif answer != msg:
+         print("FAILURE: on encryption. Size: {}, Message: #{}#, Answer: #{}#".format(size, msg, answer))
+         
+      
+   if not error:
       print("SUCESS")
    
    

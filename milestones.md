@@ -20,7 +20,7 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 
 - Matthew Donnelly
 	1. A few commits to milestones.md.  I finished most of my part early on since it's the first piece that needed to get done.  At this point, I am just in maintenance mode if any problems come up with the networking code.
-	2. Start thinking about the final project, presentation, video, etc. 
+	2. Start thinking about the final project, presentation, video, etc.
 	3. Nothing  
 
 - Jose Antonio Alvarez Ocete  
@@ -59,7 +59,7 @@ https://youtu.be/57an9dxj568
 		https://github.com/Ocete/ECS-153-Final-project/commit/e7ca1472099a8696272843d6957b0e8bcb1bcb14
 		https://github.com/Ocete/ECS-153-Final-project/commit/918f3b4e058612e2f1b88deed913459a0dfb7a0b
 		https://github.com/Ocete/ECS-153-Final-project/commit/fcf7bd9907f55f8e300eb0f34f7e41c5f26c4772  
-        **DDs:**
+  **DDs:**
 		https://docs.google.com/document/d/1ahEHM-SRMf0zXW8gQfC6h4ikLVPCOtSuqnsOtEQ36Nk/edit?usp=sharing  
 
 - Jose Antonio Alvarez Ocete  

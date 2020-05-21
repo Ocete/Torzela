@@ -94,8 +94,8 @@ class Client:
    # Returns the dead drop chosen and the dead drop server where it's found.
    def computeDeadDrop(self, sharedSecret, round):
       aux = int.from_bytes(sharedSecret, byteorder=sys.byteorder) * round
-      deadDrop = aux // self.nDD
-      deadDropServer = deadDrop // self.nDDS
+      deadDrop = aux % self.nDD
+      deadDropServer = deadDrop % self.nDDS
       return deadDrop, deadDropServer
 
    # Creates a pair (sk, pk) for each server in the chain + the dead drop server.
@@ -115,7 +115,7 @@ class Client:
       if self.partnerPublicKey == "":
          _, ppk = TU.generateKeys(self.keyGenerator)
          msg = TU.createRandomMessage(self.messageSize)
-       
+      
       # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.privateKey, ppk)
       deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret, round)
