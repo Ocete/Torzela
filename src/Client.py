@@ -128,10 +128,11 @@ class Client:
       # After encryption: "deadDropServer#pk#encrypted_msg"
       msg = "{}#{}#{}".format(self.myChain, deadDrop, msg.decode("latin_1"))
       server_pk = self.deadDropServersPublicKeys[deadDropServer]
-      local_keys = self.temporaryKeys[-1]
-      sharedSecret = TU.computeSharedSecret(local_keys[0], server_pk)
+      local_sk, local_pk = self.temporaryKeys[-1]
+      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
       msg = TU.encryptMessage(sharedSecret, msg)
-      msg = "{}#{}#{}".format(deadDropServer, local_keys[1], msg)
+      serialized_ppk = TU.serializePublicKey(local_pk)
+      msg = "{}#{}#{}".format(deadDropServer, serialized_ppk, msg)
       
       return msg
    
