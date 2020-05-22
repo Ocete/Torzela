@@ -7,7 +7,6 @@ import sys
 from message import Message
 import TorzelaUtils as TU
 
-# For the encryption
 class Client:   
    # Configure the client with the IP and Port of the next server
    def __init__(self, serverIP, serverPort, localPort):
@@ -36,15 +35,21 @@ class Client:
       # TODO: We get to know this key through the Dialing Protocol
       self.partnerPublicKey = ""
       
-      # TODO: All the following values must be obtained from the Front Server(?)
+      # Temporary keys. They are computed for each sent message.
+      self.temporaryKeys = []
+      
+      # TODO: All the following values must be obtained from the Front Server
       
       # The chain this client belongs to. It is provided by the Front
       # Server after the first connection.
-      self.myChain = -1
+      self.myChain = 0
       
       # number of dead drops and dead drop servers
       self.nDD = 2**128
       self.nDDS = 1
+      
+      # The conversational round we are currently in
+      self.round = 1
       
       # The public keys from the n-1 servers in your chain.
       # Index 0 is the Front Server will index n-2 (the last one) is
@@ -55,13 +60,6 @@ class Client:
       # The public keys from all the Dead Drops Servers.
       self.deadDropServersPublicKeys = []
       
-      # Temporary keys. They are computed for each sent message.
-      self.temporaryKeys = []
-   
-      # The size of the messages. This value is provided by the Front Server
-      # Warning: this value must be multiple of block_size used in the
-      # encryption/dercyption, currently set to 16
-      self.messageSize = 256
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -92,8 +90,9 @@ class Client:
       self.sock.close()
 
    # Returns the dead drop chosen and the dead drop server where it's found.
-   def computeDeadDrop(self, sharedSecret, round):
-      aux = int.from_bytes(sharedSecret, byteorder=sys.byteorder) * round
+   def computeDeadDrop(self, sharedSecret):
+      aux = int.from_bytes(sharedSecret, 
+                           byteorder=sys.byteorder) * (self.round + 1)
       deadDrop = aux % self.nDD
       deadDropServer = deadDrop % self.nDDS
       return deadDrop, deadDropServer
@@ -105,8 +104,9 @@ class Client:
          self.temporaryKeys.append( TU.generateKeys(self.keyGenerator) )
 
    # Applies onion routing to the messages and fits in it all the information
-   # needed for the servers. Returns a string
-   def prepareMessage(self, msg, round):
+   # needed for the servers. data must be a string with the content of the 
+   # message and round an integer. Returns a string
+   def preparePayload(self, data):
       self.generateTemporaryKeys()
       
       ppk = self.partnerPublicKey
@@ -114,27 +114,55 @@ class Client:
       # and a fake reciever
       if self.partnerPublicKey == "":
          _, ppk = TU.generateKeys(self.keyGenerator)
-         msg = TU.createRandomMessage(self.messageSize)
+         data = TU.createRandomMessage(32)
       
       # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.privateKey, ppk)
-      deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret, round)
-      msg = TU.encryptMessage(sharedSecret, msg)
+      deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret)
+      data = TU.encryptMessage(sharedSecret, data)
       
       # Compute the message for the Dead Drop Server. It includes how to 
       # send it back (the chain) and the dead drop.
       # It has the following form: 
-      # Before encryption: "myChain#deadDrop#msg"
-      # After encryption: "deadDropServer#pk#encrypted_msg"
-      msg = "{}#{}#{}".format(self.myChain, deadDrop, msg.decode("latin_1"))
+      # Before encryption: "myChain#deadDrop#data"
+      # After encryption: "deadDropServer#serialized_pk#encrypted_data"
+      data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
       server_pk = self.deadDropServersPublicKeys[deadDropServer]
       local_sk, local_pk = self.temporaryKeys[-1]
       sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
-      msg = TU.encryptMessage(sharedSecret, msg)
-      serialized_ppk = TU.serializePublicKey(local_pk)
-      msg = "{}#{}#{}".format(deadDropServer, serialized_ppk, msg)
+      data = TU.encryptMessage(sharedSecret, data)
+      serialized_local_pk = TU.serializePublicKey(local_pk)
+      data = "{}#{}#{}".format(deadDropServer, serialized_local_pk, data.decode("latin_1"))
       
-      return msg
+      # Apply onion routing. On each layer the message looks like this:
+      # "serialized_pk#encrypted_data"
+      tempKeysReversed = self.temporaryKeys[:-1]
+      tempKeysReversed.reverse()
+      self.chainServersPublicKeys.reverse()
+      for local_keys, server_pk in zip (tempKeysReversed, 
+                                       self.chainServersPublicKeys):
+         local_sk, local_pk = local_keys
+         sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+         data = TU.encryptMessage(sharedSecret, data)
+         serialized_local_pk = TU.serializePublicKey(local_pk)
+         data = "{}#{}".format(serialized_local_pk, data.decode("latin_1"))
+      self.chainServersPublicKeys.reverse()
+         
+      return data
+   
+   # data is a string containing the received message payload. Undo onion 
+   # routing to obtain the decrypted message. Returns a string.
+   def decryptPayload(self, data):
+      data = data.encode()
+      print("Lets goo:{}".format(data))
+      # Undo the onion routing
+      for local_keys, server_pk in zip (self.temporaryKeys[:-1], 
+                                        self.chainServersPublicKeys):
+         local_sk, local_pk = local_keys
+         sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+         data = TU.decryptMessage(sharedSecret, data)
+      
+      return data.decode()
    
    # Send and receive a message from Torzela
    # Because we always receive a response, it doesn't
@@ -149,6 +177,9 @@ class Client:
       # Connect to next server
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
+
+      # Prepare the payload following the conversational protocol
+      msg.setPayload( self.preparePayload(msg.getPayload()) )
 
       # Send our message to the server
       # the 1 means we are sending the message towards
@@ -166,9 +197,12 @@ class Client:
       recvStr = conn.recv(4096)
       conn.close()
 
-      # Convert response to message and return it
+      # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
+      
+      # Undo onion routing to the payload
+      msg.setPayload( self.decryptPayload(msg.getPayload()) )
       
       return m
       

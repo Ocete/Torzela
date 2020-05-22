@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import socket
-import sys
 import threading
 import time
 from message import Message
+import TorzelaUtils as TU
 
 class DeadDrop:
    # Set local port to listen on
@@ -20,6 +20,18 @@ class DeadDrop:
 
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
+      
+      # Used during for onion rotuing in the conversational protocol  
+      # TODO: make this a dict{ clientIp: key }
+      # The key will be updated each time a message from that client is received.
+      self.clientLocalKey = ""
+      
+      # The server keys
+      self.__privateKey, self.publicKey = TU.generateKeys( 
+            TU.createKeyGenerator() )
+
+   def getPublicKey(self):
+      return self.publicKey
 
    # This is where all messages are handled
    def listen(self):
@@ -66,6 +78,24 @@ class DeadDrop:
          # and are going to send the message back to all of the 
          # connected servers anyways
          conn.close()
+         
+         # Onion routing stuff
+         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=2)
+         clientMsg.setPayload(newPayload)
+         
+         # self.clientLocalKey -> the key used to encrypt the RESPONSE
+         # clientChain -> the SpreadingServer where the RESPONSE should be sent
+         # deadDrop -> the deadDrop this message is accessing
+         
+         # Here there should be a bunch of code matching messages (maybe not het but yeah=)
+         
+         # Here we would normally encrypt the RESPONSE. For testing just send 
+         # the same message back
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
 
          # We need to set this to 2 so that the other servers
          # in the chain know to send this back to the client

@@ -50,7 +50,6 @@ def computeSharedSecret(myPrivateKey, otherPublicKey):
 # Encrypt the message using symmetric encryption.
 # sharedSecret is the shared secret and msg is a string containing the 
 # message to encrypt. Returns a stream of bytes
-# Warning: the cipher used must be the same for encryption than for decryption. 
 def encryptMessage(shared_secret, msg):
    padder = padding.PKCS7(128).padder()
    padded_data = padder.update(msg.encode()) + padder.finalize()
@@ -73,19 +72,58 @@ def decryptMessage(shared_secret, msg):
    
    return unpadded_data.decode()
 
-# Given a RSA public key, returns it serialization in bytes
+# Given a RSA public key, returns its serialization as a string
 def serializePublicKey(public_key):
    return public_key.public_bytes(
       encoding=serialization.Encoding.PEM,
       format=serialization.PublicFormat.SubjectPublicKeyInfo
-   )
+   ).decode()
 
-# Given a bytes stream representing a RSA public key, 
+# Given a string representing a RSA public key, 
 # returns a public key object
-def deserializePublicKey(public_key_bytes):
-   return serialization.load_pem_public_key(public_key_bytes, 
+def deserializePublicKey(public_key):
+   return serialization.load_pem_public_key(public_key.encode(), 
                                             backend=default_backend())
    
+# Decrypts one layer of the onion routing. This is used by the servers.
+# Takes an private key object (serverPrivateKey) and a string (msgPayload).
+# serverType is an int. It dictates the form of the msgPayload after 
+# decoding it:
+# 0 -> FrontServers and MiddleServers. decodedMsgPayload = "nest_pk#payload"
+#     In this case, it returns (ppk, payload="nest_pk#payload")
+# 1 -> SpreadingServers. decodedMsgPayload = "DDS#next_pk#payload"
+#     In this case, it returns (ppk, DDS, payload="next_pk#payload")
+#     Where DDS is the index of the deadropServer where the msg must be sent
+# 2 -> DeadDropServer. decodedMsgPayload = "clientChain#DD#payload"
+#     In this case, it returns (ppk, clientChain, DD, payload)
+#     Where clientChain is the chain where the response must be sent back
+#     And DD is the deadDrop
+# payload is a string, the rest of returned arguments are intergers or keys
+def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
+   ppk, payload = msgPayload.split("#", maxsplit=1)
+   ppk = deserializePublicKey(ppk)
+   payload = payload.encode()
+   sharedSecret = computeSharedSecret(serverPrivateKey, ppk)
+   decryptedPayload = decryptMessage(sharedSecret, payload).decode()  
+   
+   if serverType == 0:
+      return ppk, decryptedPayload    
+   elif serverType == 1:
+      DDS, payload1, payload2 = decryptedPayload.split("#", maxsplit=2)
+      decryptedPayload = "{}#{}".format(payload1, payload2)         
+      return ppk, int(DDS), decryptedPayload
+   elif serverType == 2:
+      clientChain, DD, payload = decryptedPayload.split("#", maxsplit=2)
+      return ppk, int(clientChain), int(DD), payload
+   else:
+      print("ERROR decryptOnionLayer: serverType must be in {0,1,2}")
+
+# Encrypts a single onion layer. Returns a string.
+def encryptOnionLayer(serverPrivateKey, clientPublicKey, msgPayload):
+   sharedSecret = computeSharedSecret(serverPrivateKey, clientPublicKey)
+   encryptedPayload = encryptMessage(sharedSecret, msgPayload)
+   return encryptedPayload.decode()
+
 def testEncryption():
    keyGenerator = createKeyGenerator()
    

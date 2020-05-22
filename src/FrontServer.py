@@ -5,6 +5,7 @@ import threading
 import asyncio
 import time
 from message import Message
+import TorzelaUtils as TU
 
 # Initialize a class specifically for the round info.
 # This class will track if a round is currently ongoing or not, the
@@ -51,6 +52,18 @@ class FrontServer:
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
 
+      # Used during for onion rotuing in the conversational protocol  
+      # TODO: make this a dict{ clientIp: key }
+      # The key will be updated each time a message from that client is received.
+      self.clientLocalKey = ""
+      
+      # The server keys
+      self.__privateKey, self.publicKey = TU.generateKeys( 
+            TU.createKeyGenerator() )
+
+   def getPublicKey(self):
+      return self.publicKey
+      
    def setupConnection(self):
       # Before we can connect to the next server, we need
       # to send a setup message to the next server
@@ -117,6 +130,12 @@ class FrontServer:
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards
          # a dead drop. Just forward to next server
+         
+         # Onion routing stuff
+         self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=0)
+         clientMsg.setPayload(newPayload)
+         
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.nextServerIP, self.nextServerPort))
          sock.sendall(str.encode(str(clientMsg)))
@@ -124,7 +143,14 @@ class FrontServer:
       elif clientMsg.getNetInfo() == 2: # Message going back to client
          # This is where we will have to use the public key to determine
          # which client should get the message...right now we are just
-         # sending the message to all clients
+         # sending the message to all clients <- TODO (matthew)
+         
+         # Onion routing stuff
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
+         
          for client in self.clientList:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientPublicKey = client[1]

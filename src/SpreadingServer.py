@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import socket
-import sys
 import threading
 import time
 from message import Message
+import TorzelaUtils as TU
 
 class SpreadingServer:
    # nextServers is an array of tuples in the form
@@ -34,6 +34,18 @@ class SpreadingServer:
  
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
+
+      # Used during for onion rotuing in the conversational protocol  
+      # TODO: make this a dict{ clientIp: key }
+      # The key will be updated each time a message from that client is received.
+      self.clientLocalKey = ""
+      
+      # The server keys
+      self.__privateKey, self.publicKey = TU.generateKeys( 
+            TU.createKeyGenerator() )
+
+   def getPublicKey(self):
+      return self.publicKey
 
    def setupConnection(self, ddServer):
       # Before we can connect to the next server, we need
@@ -98,6 +110,14 @@ class SpreadingServer:
       elif clientMsg.getNetInfo() == 1: 
          # In here, we handle messages going from a client towards a dead drop
          # Send message to all dead drops
+         
+         # Onion routing stuff
+         self.clientLocalKey, deadDropServer, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=1)
+         clientMsg.setPayload(newPayload)
+         # TODO (matthew): deadDropServer contains towards which server
+         # the message has to be sent :D
+         
          for ddrop in self.nextServers:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect(ddrop)
@@ -106,6 +126,13 @@ class SpreadingServer:
       elif clientMsg.getNetInfo() == 2: 
          # Here we handle messages coming from a dead drop back
          # towards a client. Just forward back to server
+         
+         # Onion routing stuff
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
+         
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((self.previousServerIP, self.previousServerPort))
          tempSock.sendall(str.encode(str(clientMsg)))
