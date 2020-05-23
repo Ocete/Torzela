@@ -23,7 +23,7 @@ class Client:
       self.keyGenerator = TU.createKeyGenerator()
    
       # Create the client keys
-      self.privateKey, self.publicKey = TU.generateKeys(self.keyGenerator)
+      self.__privateKey, self.publicKey = TU.generateKeys(self.keyGenerator)
 
       # We need to spawn off a thread here, else we will block the
       # entire program (i.e. if we create the client then the server
@@ -60,6 +60,7 @@ class Client:
       # The public keys from all the Dead Drops Servers.
       self.deadDropServersPublicKeys = []
       
+      self.privateDeadDropServerKey = ""
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -68,7 +69,8 @@ class Client:
       # This is the setup message below that will hold this information
       setupMsg = Message()
       setupMsg.setNetInfo(0)
-      setupMsg.setPayload("{}|{}".format(self.localPort, self.publicKey))
+      serializedKey = TU.serializePublicKey(self.publicKey)
+      setupMsg.setPayload("{}|{}".format(self.localPort, serializedKey))
  
       self.connectionMade = False
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,7 +91,7 @@ class Client:
       # Close the connection after we verify everything is working
       self.sock.close()
 
-   # Returns the dead drop chosen and the dead drop server where it's found.
+   # Returns the dead drop chosen and the dead drop server where it's located.
    def computeDeadDrop(self, sharedSecret):
       aux = int.from_bytes(sharedSecret, 
                            byteorder=sys.byteorder) * (self.round + 1)
@@ -117,7 +119,7 @@ class Client:
          data = TU.createRandomMessage(32)
       
       # Compute the message for your partner   
-      sharedSecret = TU.computeSharedSecret(self.privateKey, ppk)
+      sharedSecret = TU.computeSharedSecret(self.__privateKey, ppk)
       deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
       
@@ -129,40 +131,46 @@ class Client:
       data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
       server_pk = self.deadDropServersPublicKeys[deadDropServer]
       local_sk, local_pk = self.temporaryKeys[-1]
+      
       sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+      sharedSecret2 = TU.computeSharedSecret(self.privateDeadDropServerKey, local_pk)
+      
+      
+      print( TU.serializePublicKey(server_pk) )
+      print( TU.serializePrivateKey(self.privateDeadDropServerKey) )
+      print( TU.serializePublicKey(local_pk) )
+      print( TU.serializePrivateKey(local_sk) )
+      print("   client: \n sharedSecret1:{}\n sharedSecret2:{}".format( sharedSecret, sharedSecret2 ))
+      
       data = TU.encryptMessage(sharedSecret, data)
       serialized_local_pk = TU.serializePublicKey(local_pk)
-      data = "{}#{}#{}".format(deadDropServer, serialized_local_pk, data.decode("latin_1"))
+      data = "{}#{}".format(serialized_local_pk, data.decode("latin_1"))
+      #data = "{}#{}#{}".format(deadDropServer, serialized_local_pk, data.decode("latin_1"))
       
-      # Apply onion routing. On each layer the message looks like this:
-      # "serialized_pk#encrypted_data"
-      tempKeysReversed = self.temporaryKeys[:-1]
-      tempKeysReversed.reverse()
-      self.chainServersPublicKeys.reverse()
-      for local_keys, server_pk in zip (tempKeysReversed, 
-                                       self.chainServersPublicKeys):
-         local_sk, local_pk = local_keys
-         sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
-         data = TU.encryptMessage(sharedSecret, data)
-         serialized_local_pk = TU.serializePublicKey(local_pk)
-         data = "{}#{}".format(serialized_local_pk, data.decode("latin_1"))
-      self.chainServersPublicKeys.reverse()
-         
+      # Apply onion routing
+      #data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
+      #                            self.chainServersPublicKeys,
+      #                            data)
+      
       return data
    
    # data is a string containing the received message payload. Undo onion 
    # routing to obtain the decrypted message. Returns a string.
    def decryptPayload(self, data):
-      data = data.encode()
-      print("Lets goo:{}".format(data))
+      data = data.encode("latin_1")
       # Undo the onion routing
-      for local_keys, server_pk in zip (self.temporaryKeys[:-1], 
-                                        self.chainServersPublicKeys):
-         local_sk, local_pk = local_keys
-         sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
-         data = TU.decryptMessage(sharedSecret, data)
+      #for local_keys, server_pk in zip (self.temporaryKeys[:-1], 
+      #                                  self.chainServersPublicKeys):
+      #   local_sk, local_pk = local_keys
+      #   sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+      #   data = TU.decryptMessage(sharedSecret, data)
+         
+      # Last layer of encryption includes how your partner encrypted it.
+      sharedSecret = TU.computeSharedSecret(self.__privateKey, 
+                                            self.partnerPublicKey)
+      data = TU.decryptMessage(sharedSecret, data)
       
-      return data.decode()
+      return data
    
    # Send and receive a message from Torzela
    # Because we always receive a response, it doesn't
@@ -185,7 +193,7 @@ class Client:
       # the 1 means we are sending the message towards
       # a dead drop 
       msg.setNetInfo(1)
-      self.sock.sendall(str.encode(str(msg)))
+      self.sock.sendall(str(msg).encode("utf-8"))
       self.sock.close()
 
       # Now open up the listening port to listen for a response
@@ -194,7 +202,7 @@ class Client:
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
-      recvStr = conn.recv(4096)
+      recvStr = conn.recv(4096).decode("utf-8")
       conn.close()
 
       # Convert response to message
@@ -202,7 +210,8 @@ class Client:
       m.loadFromString(recvStr)
       
       # Undo onion routing to the payload
-      msg.setPayload( self.decryptPayload(msg.getPayload()) )
+      if self.partnerPublicKey != "": 
+         m.setPayload( self.decryptPayload(m.getPayload()) )
       
       return m
       

@@ -35,7 +35,7 @@ class MiddleServer:
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )
-
+      
    def getPublicKey(self):
       return self.publicKey
 
@@ -101,26 +101,26 @@ class MiddleServer:
          # the dead drop. There is only one way to send packets
          
          # Onion routing stuff
-         newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
-                                           clientMsg.getPayload())
-         clientMsg.setPayload(newPayload)
+         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
+         #                                  self.clientLocalKey, 
+         #                                  clientMsg.getPayload())
+         #clientMsg.setPayload(newPayload)
          
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.nextServerIP, self.nextServerPort))
-         sock.sendall(str.encode(str(clientMsg)))
+         sock.sendall(str(clientMsg).encode("utf-8"))
          sock.close()
       elif clientMsg.getNetInfo() == 2: 
          # In here, we are handling messages send back
          # to the client. There is only one way to send packets
          
          # Onion routing stuff
-         newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
-                                           clientMsg.getPayload())
-         clientMsg.setPayload(newPayload)
+         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
+         #                                  self.clientLocalKey, 
+         #                                  clientMsg.getPayload())
+         #clientMsg.setPayload(newPayload)
          
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((self.previousServerIP,self.previousServerPort))
-         tempSock.sendall(str.encode(str(clientMsg)))
+         tempSock.sendall(str(clientMsg).encode("utf-8"))
          tempSock.close()

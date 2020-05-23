@@ -6,6 +6,7 @@ from FrontServer import FrontServer
 from MiddleServer import MiddleServer
 from SpreadingServer import SpreadingServer
 from DeadDrop import DeadDrop
+import TorzelaUtils as TU
 
 def testNetwork():
    # This is the setup we have below with the port number that
@@ -17,11 +18,14 @@ def testNetwork():
    
    # We can do any kind of test we want in here...
    
-   c = Client('localhost', 7777, 7776)
-   front = FrontServer('localhost', 7778, 7777)
-   middle = MiddleServer('localhost', 7779, 7778)
-   spreading = SpreadingServer([('localhost', 7780)], 7779)
-   dead = DeadDrop(7780)
+   initial_port = 7776
+   initial_port = 7620
+   
+   c = Client('localhost', initial_port+1, initial_port)
+   front = FrontServer('localhost', initial_port+2, initial_port+1)
+   middle = MiddleServer('localhost', initial_port+3, initial_port+2)
+   spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
+   dead = DeadDrop(initial_port+4)
    
    # Set the keys in the client
    ppk_frontServer = front.getPublicKey()
@@ -29,11 +33,13 @@ def testNetwork():
    ppk_spreadingServer = spreading.getPublicKey()
    ppk_deadDropServer = dead.getPublicKey()
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-   c.deadDropServersPublicKeys = [ ppk_deadDropServer ] 
+   c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+   c.partnerPublicKey = c.publicKey
+   c.privateDeadDropServerKey = TU.deserializePrivateKey(dead.getPrivateKey())
    
    # Prepare the message
    m = Message()
-   m.setPayload("Hello Torzela!")
+   m.setPayload("Hello Torzela!")   
    
    # Send this message into Torzela and get a response
    returned = c.sendAndRecvMsg(m)

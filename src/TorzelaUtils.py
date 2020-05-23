@@ -57,12 +57,18 @@ def encryptMessage(shared_secret, msg):
    cipher = createCipher(shared_secret)
    encryptor = cipher.encryptor()
    e = encryptor.update(padded_data) + encryptor.finalize()
+   
+   print("   encrypted: {}\n###\n{}".format(shared_secret, e))
+   
    return e
 
 # Decrypt the message using symmetric encryption.
 # sharedSecret is the shared secret and msg is an array of bytes containing
 # the encrypted message. Returns a string
 def decryptMessage(shared_secret, msg):
+   
+   print("   decrypting: {}\n###\n{}".format(shared_secret, msg))
+   
    cipher = createCipher(shared_secret)
    decryptor = cipher.decryptor()
    dt = decryptor.update(msg) + decryptor.finalize()
@@ -85,6 +91,21 @@ def deserializePublicKey(public_key):
    return serialization.load_pem_public_key(public_key.encode(), 
                                             backend=default_backend())
    
+# Given a RSA private key, returns its serialization as a string
+def serializePrivateKey(privateKey):
+   return privateKey.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.PKCS8,
+      encryption_algorithm=serialization.NoEncryption()
+   ).decode()
+
+# Given a string representing a RSA private key, 
+# returns a private key object
+def deserializePrivateKey(privateKey):
+   return serialization.load_pem_private_key(privateKey.encode(),
+                                             password=None,
+                                             backend=default_backend())
+   
 # Decrypts one layer of the onion routing. This is used by the servers.
 # Takes an private key object (serverPrivateKey) and a string (msgPayload).
 # serverType is an int. It dictates the form of the msgPayload after 
@@ -102,10 +123,11 @@ def deserializePublicKey(public_key):
 def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
    ppk, payload = msgPayload.split("#", maxsplit=1)
    ppk = deserializePublicKey(ppk)
-   payload = payload.encode()
+   payload = payload.encode("latin_1")
    sharedSecret = computeSharedSecret(serverPrivateKey, ppk)
-   decryptedPayload = decryptMessage(sharedSecret, payload).decode()  
+   decryptedPayload = decryptMessage(sharedSecret, payload).decode("latin_1")  
    
+      
    if serverType == 0:
       return ppk, decryptedPayload    
    elif serverType == 1:
@@ -114,7 +136,7 @@ def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
       return ppk, int(DDS), decryptedPayload
    elif serverType == 2:
       clientChain, DD, payload = decryptedPayload.split("#", maxsplit=2)
-      return ppk, int(clientChain), int(DD), payload
+      return ppk, int(clientChain), int(DD), decryptedPayload
    else:
       print("ERROR decryptOnionLayer: serverType must be in {0,1,2}")
 
@@ -124,14 +146,32 @@ def encryptOnionLayer(serverPrivateKey, clientPublicKey, msgPayload):
    encryptedPayload = encryptMessage(sharedSecret, msgPayload)
    return encryptedPayload.decode()
 
+# Apply onion routing. On each layer the message looks like this:
+# "serialized_pk#encrypted_data"
+def applyOnionRouting(localKeys, chainServersPublicKeys, data):
+      localKeys.reverse()
+      chainServersPublicKeys.reverse()
+      for local_keys, server_pk in zip (localKeys, chainServersPublicKeys):
+         local_sk, local_pk = local_keys
+         sharedSecret = computeSharedSecret(local_sk, server_pk)
+         data = encryptMessage(sharedSecret, data)
+         serialized_local_pk = serializePublicKey(local_pk)
+         data = "{}#{}".format(serialized_local_pk, data.decode("latin_1"))
+         
+      chainServersPublicKeys.reverse()
+      return data
+
 def testEncryption():
+   
    keyGenerator = createKeyGenerator()
    
-   a_private_key, a_public_key = generateKeys(keyGenerator)
-   b_private_key, b_public_key = generateKeys(keyGenerator)
    error = False
    
-   for _ in range(10000):
+   for _ in range(1, 1000):
+         
+      a_private_key, a_public_key = generateKeys(keyGenerator)
+      b_private_key, b_public_key = generateKeys(keyGenerator)
+      
       size = randrange(10, 256)
       msg = createRandomMessage(size)
       
@@ -149,10 +189,11 @@ def testEncryption():
          error = True
       elif answer != msg:
          print("FAILURE: on encryption. Size: {}, Message: #{}#, Answer: #{}#".format(size, msg, answer))
+         error = True
          
    if not error:
       print("SUCESS")
-   
+      
 def testKeySerialization():
    keyGenerator = createKeyGenerator()
    error = False
@@ -168,13 +209,13 @@ def testKeySerialization():
       a_shared_secret = computeSharedSecret(a_private_key, b_public_key)
       e = encryptMessage(a_shared_secret, msg)
 
-      # Serialize and deserialize Alice's public key
-      b_public_key_serialized = serializePublicKey(b_public_key)
-      b_public_key = deserializePublicKey(b_public_key_serialized)
+      # Serialize and deserialize Bob's public key
+      a_public_key_serialized = serializePublicKey(a_public_key)
+      a_public_key = deserializePublicKey(a_public_key_serialized)
       
       # Decrypt the message using the key after serialization
-      a_shared_secret = computeSharedSecret(a_private_key, b_public_key)
-      answer = decryptMessage(a_shared_secret, e)
+      b_shared_secret = computeSharedSecret(b_private_key, a_public_key)
+      answer = decryptMessage(b_shared_secret, e)
       
       if msg != answer:
          print("FAILURE: on serialization. Size: {}, Message: #{}#, Answer: #{}#".format(size, msg, answer))

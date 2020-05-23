@@ -29,10 +29,15 @@ class DeadDrop:
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )
+      print( TU.serializePublicKey(self.publicKey) )
+      print( TU.serializePrivateKey(self.__privateKey) )
 
    def getPublicKey(self):
-      return self.publicKey
-
+      return TU.serializePublicKey(self.publicKey)
+   
+   def getPrivateKey(self):
+      return TU.serializePrivateKey(self.__privateKey)
+   
    # This is where all messages are handled
    def listen(self):
       # Listen for incoming connections 
@@ -80,8 +85,9 @@ class DeadDrop:
          conn.close()
          
          # Onion routing stuff
+         print(self.__privateKey)
          self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
-               self.__privateKey, clientMsg.getPayload(), serverType=2)
+              self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
          
          # self.clientLocalKey -> the key used to encrypt the RESPONSE
@@ -92,10 +98,10 @@ class DeadDrop:
          
          # Here we would normally encrypt the RESPONSE. For testing just send 
          # the same message back
-         newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
-                                           clientMsg.getPayload())
-         clientMsg.setPayload(newPayload)
+         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
+         #                                  self.clientLocalKey, 
+         #                                  clientMsg.getPayload())
+         #clientMsg.setPayload(newPayload)
 
          # We need to set this to 2 so that the other servers
          # in the chain know to send this back to the client
@@ -107,6 +113,6 @@ class DeadDrop:
             prevServerIP = prevServer[0]
             prevServerPort = int(prevServer[1])
             tempSock.connect((prevServerIP, prevServerPort))
-            tempSock.sendall(str.encode(str(clientMsg)))
+            tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
          

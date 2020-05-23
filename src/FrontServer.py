@@ -59,7 +59,7 @@ class FrontServer:
       
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
-            TU.createKeyGenerator() )
+            TU.createKeyGenerator() )         
 
    def getPublicKey(self):
       return self.publicKey
@@ -120,7 +120,8 @@ class FrontServer:
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
-
+         clientPublicKey = TU.deserializePublicKey(clientPublicKey) 
+         
          # Build the entry for the client. See clientList above
          clientEntry = ((client_addr[0], clientPort), clientPublicKey)
 
@@ -132,13 +133,13 @@ class FrontServer:
          # a dead drop. Just forward to next server
          
          # Onion routing stuff
-         self.clientLocalKey, newPayload = TU.decryptOnionLayer(
-               self.__privateKey, clientMsg.getPayload(), serverType=0)
-         clientMsg.setPayload(newPayload)
+         #self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+         #      self.__privateKey, clientMsg.getPayload(), serverType=0)
+         #clientMsg.setPayload(newPayload)
          
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.nextServerIP, self.nextServerPort))
-         sock.sendall(str.encode(str(clientMsg)))
+         sock.sendall(str(clientMsg).encode("utf-8"))
          sock.close()
       elif clientMsg.getNetInfo() == 2: # Message going back to client
          # This is where we will have to use the public key to determine
@@ -146,10 +147,10 @@ class FrontServer:
          # sending the message to all clients <- TODO (matthew)
          
          # Onion routing stuff
-         newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
-                                           clientMsg.getPayload())
-         clientMsg.setPayload(newPayload)
+         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
+         #                                  self.clientLocalKey, 
+         #                                  clientMsg.getPayload())
+         #clientMsg.setPayload(newPayload)
          
          for client in self.clientList:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -157,7 +158,7 @@ class FrontServer:
             clientIP = client[0][0]
             clientPort = int(client[0][1])
             tempSock.connect((clientIP,clientPort))
-            tempSock.sendall(str.encode(str(clientMsg)))
+            tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
    
    # Run server round
