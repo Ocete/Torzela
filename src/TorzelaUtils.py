@@ -18,8 +18,11 @@ def createRandomMessage(messageSize):
    return ''.join(choice(chars) for i in range(messageSize))
 
 def createKeyGenerator():
-   return dh.generate_parameters(generator=2, key_size=512, 
-                                 backend=default_backend())
+   p = 0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF
+   g = 2
+   params_numbers = dh.DHParameterNumbers(p,g)
+   parameters = params_numbers.parameters(default_backend())
+   return parameters
 
 def createCipher(sharedSecret):
    # iv initialization vector is a 16 block of random bytes generated 
@@ -58,16 +61,12 @@ def encryptMessage(shared_secret, msg):
    encryptor = cipher.encryptor()
    e = encryptor.update(padded_data) + encryptor.finalize()
    
-   print("   encrypted: {}\n###\n{}".format(shared_secret, e))
-   
    return e
 
 # Decrypt the message using symmetric encryption.
 # sharedSecret is the shared secret and msg is an array of bytes containing
 # the encrypted message. Returns a string
 def decryptMessage(shared_secret, msg):
-   
-   print("   decrypting: {}\n###\n{}".format(shared_secret, msg))
    
    cipher = createCipher(shared_secret)
    decryptor = cipher.decryptor()
@@ -79,6 +78,7 @@ def decryptMessage(shared_secret, msg):
    return unpadded_data.decode()
 
 # Given a RSA public key, returns its serialization as a string
+   # This is for testing. We should never send a private key over the network
 def serializePublicKey(public_key):
    return public_key.public_bytes(
       encoding=serialization.Encoding.PEM,
@@ -87,6 +87,7 @@ def serializePublicKey(public_key):
 
 # Given a string representing a RSA public key, 
 # returns a public key object
+# This is for testing. We should never send a private key over the network
 def deserializePublicKey(public_key):
    return serialization.load_pem_public_key(public_key.encode(), 
                                             backend=default_backend())
@@ -125,18 +126,17 @@ def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
    ppk = deserializePublicKey(ppk)
    payload = payload.encode("latin_1")
    sharedSecret = computeSharedSecret(serverPrivateKey, ppk)
-   decryptedPayload = decryptMessage(sharedSecret, payload).decode("latin_1")  
-   
+   decryptedPayload = decryptMessage(sharedSecret, payload)
       
    if serverType == 0:
       return ppk, decryptedPayload    
    elif serverType == 1:
-      DDS, payload1, payload2 = decryptedPayload.split("#", maxsplit=2)
-      decryptedPayload = "{}#{}".format(payload1, payload2)         
-      return ppk, int(DDS), decryptedPayload
+      DDS, next_ppk, payload = decryptedPayload.split("#", maxsplit=2)
+      decryptedPayload = "{}#{}".format(next_ppk, payload)         
+      return int(DDS), ppk, decryptedPayload
    elif serverType == 2:
       clientChain, DD, payload = decryptedPayload.split("#", maxsplit=2)
-      return ppk, int(clientChain), int(DD), decryptedPayload
+      return ppk, int(clientChain), int(DD), payload
    else:
       print("ERROR decryptOnionLayer: serverType must be in {0,1,2}")
 
@@ -144,7 +144,7 @@ def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
 def encryptOnionLayer(serverPrivateKey, clientPublicKey, msgPayload):
    sharedSecret = computeSharedSecret(serverPrivateKey, clientPublicKey)
    encryptedPayload = encryptMessage(sharedSecret, msgPayload)
-   return encryptedPayload.decode()
+   return encryptedPayload.decode("latin_1")
 
 # Apply onion routing. On each layer the message looks like this:
 # "serialized_pk#encrypted_data"
@@ -195,15 +195,14 @@ def testEncryption():
       print("SUCESS")
       
 def testKeySerialization():
-   keyGenerator = createKeyGenerator()
    error = False
    
    for _ in range(10000):
       size = randrange(10, 256)
       msg = createRandomMessage(size)
       
-      a_private_key, a_public_key = generateKeys(keyGenerator)
-      b_private_key, b_public_key = generateKeys(keyGenerator)
+      a_private_key, a_public_key = generateKeys(createKeyGenerator())
+      b_private_key, b_public_key = generateKeys(createKeyGenerator())
       
       # Alice encrypts the message using her private key and Bob's public key
       a_shared_secret = computeSharedSecret(a_private_key, b_public_key)

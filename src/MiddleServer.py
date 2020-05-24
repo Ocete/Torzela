@@ -84,11 +84,13 @@ class MiddleServer:
    # This runs in a thread and handles messages from clients
    def handleMsg(self, conn, client_addr):
       # Receive data from client
-      clientData = conn.recv(4096).decode("utf-8")
+      clientData = conn.recv(32768).decode("utf-8")
 
       # Format as message
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
+      
+      print("Middle server got " + clientData)
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -101,10 +103,9 @@ class MiddleServer:
          # the dead drop. There is only one way to send packets
          
          # Onion routing stuff
-         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
-         #                                  self.clientLocalKey, 
-         #                                  clientMsg.getPayload())
-         #clientMsg.setPayload(newPayload)
+         self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=0)
+         clientMsg.setPayload(newPayload)
          
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.nextServerIP, self.nextServerPort))
@@ -115,10 +116,10 @@ class MiddleServer:
          # to the client. There is only one way to send packets
          
          # Onion routing stuff
-         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
-         #                                  self.clientLocalKey, 
-         #                                  clientMsg.getPayload())
-         #clientMsg.setPayload(newPayload)
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
          
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((self.previousServerIP,self.previousServerPort))

@@ -19,7 +19,7 @@ def testNetwork():
    # We can do any kind of test we want in here...
    
    initial_port = 7776
-   initial_port = 7620
+   initial_port = 7605
    
    c = Client('localhost', initial_port+1, initial_port)
    front = FrontServer('localhost', initial_port+2, initial_port+1)

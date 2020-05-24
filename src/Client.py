@@ -60,7 +60,9 @@ class Client:
       # The public keys from all the Dead Drops Servers.
       self.deadDropServersPublicKeys = []
       
-      self.privateDeadDropServerKey = ""
+      # An integer in [0, self.nDDS), index of the dead drop server.
+      # It's computed in every round by the client
+      self.deadDropServerIndex = 0
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -120,7 +122,7 @@ class Client:
       
       # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.__privateKey, ppk)
-      deadDrop, deadDropServer = self.computeDeadDrop(sharedSecret)
+      deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
       
       # Compute the message for the Dead Drop Server. It includes how to 
@@ -129,28 +131,18 @@ class Client:
       # Before encryption: "myChain#deadDrop#data"
       # After encryption: "deadDropServer#serialized_pk#encrypted_data"
       data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
-      server_pk = self.deadDropServersPublicKeys[deadDropServer]
+      server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
       local_sk, local_pk = self.temporaryKeys[-1]
-      
-      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
-      sharedSecret2 = TU.computeSharedSecret(self.privateDeadDropServerKey, local_pk)
-      
-      
-      print( TU.serializePublicKey(server_pk) )
-      print( TU.serializePrivateKey(self.privateDeadDropServerKey) )
-      print( TU.serializePublicKey(local_pk) )
-      print( TU.serializePrivateKey(local_sk) )
-      print("   client: \n sharedSecret1:{}\n sharedSecret2:{}".format( sharedSecret, sharedSecret2 ))
-      
+      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
       data = TU.encryptMessage(sharedSecret, data)
       serialized_local_pk = TU.serializePublicKey(local_pk)
-      data = "{}#{}".format(serialized_local_pk, data.decode("latin_1"))
-      #data = "{}#{}#{}".format(deadDropServer, serialized_local_pk, data.decode("latin_1"))
-      
+      data = "{}#{}#{}".format(self.deadDropServerIndex, serialized_local_pk,
+                               data.decode("latin_1"))
+      # Next step:
       # Apply onion routing
-      #data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
-      #                            self.chainServersPublicKeys,
-      #                            data)
+      data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
+                                  self.chainServersPublicKeys,
+                                  data)
       
       return data
    
@@ -158,12 +150,19 @@ class Client:
    # routing to obtain the decrypted message. Returns a string.
    def decryptPayload(self, data):
       data = data.encode("latin_1")
+      
       # Undo the onion routing
-      #for local_keys, server_pk in zip (self.temporaryKeys[:-1], 
-      #                                  self.chainServersPublicKeys):
-      #   local_sk, local_pk = local_keys
-      #   sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
-      #   data = TU.decryptMessage(sharedSecret, data)
+      for local_keys, server_pk in zip (self.temporaryKeys[:-1], 
+                                        self.chainServersPublicKeys):
+         local_sk, local_pk = local_keys
+         sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+         data = TU.decryptMessage(sharedSecret, data).encode("latin_1")
+         
+      # The dead drop encryption layer 
+      local_sk, local_pk = self.temporaryKeys[-1]
+      server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
+      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)
+      data = TU.decryptMessage(sharedSecret, data).encode("latin_1")
          
       # Last layer of encryption includes how your partner encrypted it.
       sharedSecret = TU.computeSharedSecret(self.__privateKey, 
@@ -202,7 +201,7 @@ class Client:
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
-      recvStr = conn.recv(4096).decode("utf-8")
+      recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
 
       # Convert response to message

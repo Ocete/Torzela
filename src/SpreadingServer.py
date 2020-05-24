@@ -93,7 +93,7 @@ class SpreadingServer:
    # This runs in a thread and handles messages from clients
    def handleMsg(self, conn, client_addr):
       # Receive data from client
-      clientData = conn.recv(4096).decode("utf-8")
+      clientData = conn.recv(32768).decode("utf-8")
 
       # Format as message
       clientMsg = Message()
@@ -112,9 +112,9 @@ class SpreadingServer:
          # Send message to all dead drops
          
          # Onion routing stuff
-         #self.clientLocalKey, deadDropServer, newPayload = TU.decryptOnionLayer(
-         #      self.__privateKey, clientMsg.getPayload(), serverType=1)
-         #clientMsg.setPayload(newPayload)
+         deadDropServer, self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=1)
+         clientMsg.setPayload(newPayload)
          
          # TODO (matthew): deadDropServer contains towards which server
          # the message has to be sent :D
@@ -129,10 +129,10 @@ class SpreadingServer:
          # towards a client. Just forward back to server
          
          # Onion routing stuff
-         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
-         #                                  self.clientLocalKey, 
-         #                                  clientMsg.getPayload())
-         #clientMsg.setPayload(newPayload)
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
          
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((self.previousServerIP, self.previousServerPort))

@@ -108,13 +108,13 @@ class FrontServer:
    # This runs in a thread and handles messages from clients
    def handleMsg(self, conn, client_addr):
       # Receive data from client
-      clientData = conn.recv(4096).decode("utf-8")
+      clientData = conn.recv(32768).decode("utf-8")
 
       # Format as message
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
 
-      print("FrontServer received " + clientData)
+      print("FrontServer got " + clientData)
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -133,9 +133,9 @@ class FrontServer:
          # a dead drop. Just forward to next server
          
          # Onion routing stuff
-         #self.clientLocalKey, newPayload = TU.decryptOnionLayer(
-         #      self.__privateKey, clientMsg.getPayload(), serverType=0)
-         #clientMsg.setPayload(newPayload)
+         self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=0)
+         clientMsg.setPayload(newPayload)
          
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.nextServerIP, self.nextServerPort))
@@ -147,10 +147,10 @@ class FrontServer:
          # sending the message to all clients <- TODO (matthew)
          
          # Onion routing stuff
-         #newPayload = TU.encryptOnionLayer(self.__privateKey, 
-         #                                  self.clientLocalKey, 
-         #                                  clientMsg.getPayload())
-         #clientMsg.setPayload(newPayload)
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
          
          for client in self.clientList:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
