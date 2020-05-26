@@ -18,8 +18,7 @@ def testNetwork():
    
    # We can do any kind of test we want in here...
    
-   initial_port = 7776
-   initial_port = 7605
+   initial_port = 7775
    
    c = Client('localhost', initial_port+1, initial_port)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
@@ -35,7 +34,7 @@ def testNetwork():
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
    c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
    c.partnerPublicKey = c.publicKey
-   c.privateDeadDropServerKey = TU.deserializePrivateKey(dead.getPrivateKey())
+   # c.privateDeadDropServerKey = TU.deserializePrivateKey(dead.getPrivateKey())
    
    # Prepare the message
    m = Message()

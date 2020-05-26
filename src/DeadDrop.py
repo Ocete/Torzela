@@ -21,10 +21,13 @@ class DeadDrop:
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
       
-      # Used during for onion rotuing in the conversational protocol  
+      # Used during for onion routing in the conversational protocol  
       # TODO: make this a dict{ clientIp: key }
       # The key will be updated each time a message from that client is received.
       self.clientLocalKey = ""
+
+      # Dictionary to store all client keys, used for message matching later
+      self.clientKeys = {}
       
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
@@ -87,8 +90,14 @@ class DeadDrop:
          # self.clientLocalKey -> the key used to encrypt the RESPONSE
          # clientChain -> the SpreadingServer where the RESPONSE should be sent
          # deadDrop -> the deadDrop this message is accessing
+         # newPayload -> RESPONSE message body
          
-         # Here there should be a bunch of code matching messages (maybe not het but yeah=)
+         # Here there should be a bunch of code matching messages (maybe
+         # not yet but yeah)
+         
+         # Add an entry in the dictionary for the new client
+         self.clientKeys[client_addr] = self.clientLocalKey
+
          
          # Here we would normally encrypt the RESPONSE. For testing just send 
          # the same message back

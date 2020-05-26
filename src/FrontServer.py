@@ -9,16 +9,13 @@ import TorzelaUtils as TU
 
 # Initialize a class specifically for the round info.
 # This class will track if a round is currently ongoing or not, the
-# actual identifying number of the round, the time it ended, the hash
-# configuration, and the lock (so that no other messages are sent during
-# the time of the round)
+# actual identifying number of the round, the time it ended, and the lock 
+# (so that no other messages are sent during the time of the round)
 class RoundInfo:
-   def __init__(self, newRound, configHash, endTime):
+   def __init__(self, newRound, endTime):
       self.open = True
       self.round = newRound
-      self.configHash = configHash
       self.endTime = endTime
-      self.lock = asyncio.Lock()
 
 
 class FrontServer:
@@ -100,6 +97,13 @@ class FrontServer:
          print("FrontServer awaiting connection")
          conn, client_addr = self.listenSock.accept()
 
+         # Continuously run a 2 second round, constantly updating as the
+         # front server listens for incoming connections
+         # To do this, we run the rounds in a separate thread
+         roundDuration = 2
+         print("Server on round: ", self.roundID)
+         threading.Thread(target=self.runRound, args=(self.roundID, roundDuration)).start()
+
          print("FrontServer accepted connection from " + str(client_addr))
 
          # Spawn a thread to handle the client
@@ -141,7 +145,8 @@ class FrontServer:
          sock.connect((self.nextServerIP, self.nextServerPort))
          sock.sendall(str(clientMsg).encode("utf-8"))
          sock.close()
-      elif clientMsg.getNetInfo() == 2: # Message going back to client
+      elif clientMsg.getNetInfo() == 2: 
+         # Message going back to client
          # This is where we will have to use the public key to determine
          # which client should get the message...right now we are just
          # sending the message to all clients <- TODO (matthew)
@@ -162,11 +167,32 @@ class FrontServer:
             tempSock.close()
    
    # Run server round
-   async def runRound(self, ctx, round, deadline):
+   async def runRound(self, round, deadline):
       # Create the new round using our class above
-      currentRound = RoundInfo(round, ctx, deadline)
+      currentRound = RoundInfo(round, deadline)
 
-      # Add new round to the server's ongoing dictionary of rounds
+      # Let clients send messages during this round only, do not allow
+      # another round to start up while one is in progress
       async with self.lock:
+         # Add new round to the server's ongoing dictionary of rounds
          self.rounds[round] = currentRound
       
+         # Start timer
+         startTime = time.process_time()
+
+         # Allow clients to send messages for duration of round
+         while time.process_time() - startTime < deadline:
+            # TODO: Figure out how to restrict clients to sending messages
+            # only within this time frame
+            continue
+      
+         # Now that round has ended, mark current round as closed
+         currentRound.open = False
+         self.roundID = self.roundID + 1
+
+         # Iterate through clients and have them connect to a new dead drop
+         # server
+         for client in self.clientList:
+            # TODO: Find a way to compute new dead drop server for each
+            # client
+            continue
