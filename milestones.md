@@ -24,9 +24,15 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 	3. Nothing  
 
 - Jose Antonio Alvarez Ocete  
-	1.  
-	2.  
-	3.  
+	1. Finished onion routing for the conversation protocol. Will be easily reused in the Dialing protocol aswell. The API given in TorzelaUtils.py should be bug-free and easy to use for everyone.  
+	2. Implement the mixnets as a priority. If time allows it, I'll also implement noise addition before the final presentation.  
+	3. Nothing.  
+	**Commits**:  
+	https://github.com/Ocete/ECS-153-Final-project/commit/e91e5555d3bd2d1f6f5ab17b3c294639f1529378  
+	https://github.com/Ocete/ECS-153-Final-project/commit/3d0bf11cd70658424483d02b9ca6dd4f7967b762  
+	https://github.com/Ocete/ECS-153-Final-project/commit/8ecf6319a67fe5e93af9444845ad431eb5a85444  
+	https://github.com/Ocete/ECS-153-Final-project/commit/5cf9cda033156e0b23b013db4a56ecf914fa8c2b  
+	https://github.com/Ocete/ECS-153-Final-project/commit/8814c16f3aff74f5542fa59addeaeb992dd49a29  
 
 - Edric Tom  
 	1.  Finished a general framework of the server rounds. Completed the Milestone 3 video. Worked to 95% of total completion on the Dead Drops subsystem design doc, filling in my work from this week.         
@@ -39,9 +45,9 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 	https://docs.google.com/document/d/1UwTi2pzKUIhbZcCzO_i3td9yvJVwlYcYBza1qwFD8DY/edit?usp=sharing          
 
 - Skyler Bala  
-	1.  
-	2.  
-	3.  
+	1. Getting up to speed w/ codebase  
+	2. Beginning of implementation of dialing protocol (protocol used to initiate conversations)  
+	3. AR: Refactoring of end-to-end test to use the dialing protocol w/ invitation dead drop instances to initiate conversations  
 
 
 ## Week of May 11th
@@ -120,6 +126,3 @@ https://www.youtube.com/watch?v=GLXdrHr1E7A
 	3. Nothing  
 
 - Skyler Bala  
-	1. Getting up to speed w/ codebase
-	2. Beginning of implementation of dialing protocol (protocol used to initiate conversations)
-	3. AR: Refactoring of end-to-end test to use the dialing protocol w/ invitation dead drop instances to initiate conversations
