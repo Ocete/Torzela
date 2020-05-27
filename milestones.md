@@ -29,9 +29,9 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 	3.  
 
 - Edric Tom  
-	1.  
-	2.  
-	3.  
+	1.  Finished a general framework of the server rounds. Completed the Milestone 3 video. About 95% done with the Dead Drops subsystem design doc as well.     
+	2.  Finish implementing the server rounds. If we can send messages between more than one client, then implement message matching.     
+	3.  Currently stuck on 3 things: forcing users to send messages only within a server round, retrieving a shared key between two clients in order to calculate the new dead drop location after the end of a round, and message matching (I don't think this can be implemented yet until we are able to send messages between clients and not to and from the same client).    
 
 - Skyler Bala  
 	1.  
