@@ -18,7 +18,7 @@ def testNetwork():
    
    # We can do any kind of test we want in here...
    
-   initial_port = 7775
+   initial_port = 7734
    
    c = Client('localhost', initial_port+1, initial_port)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
@@ -47,3 +47,7 @@ def testNetwork():
    # through the network until it reaches the Dead Drop Server, then
    # it will just be sent back, so we should get "Hello Torzela!" here
    print("RECEIVED: " + returned.getPayload())
+
+
+if __name__ == "__main__":
+   testNetwork()
