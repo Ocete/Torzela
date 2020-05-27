@@ -213,4 +213,68 @@ class Client:
          m.setPayload( self.decryptPayload(m.getPayload()) )
       
       return m
+   # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
+   def dial(self, recipient_public_key):
+      # If the initial setup has not gone through,
+      # then just block and wait. We can't send anything
+      # before we know the network is up and working
+      while not self.connectionMade:
+         time.sleep(1)
+
+      # Connect to next server
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.connect((self.serverIP, self.serverPort))
+
+      # Prepare the payload following the conversational protocol
+      message = Message()
+      self.preparePayload(message.getPayload())
+      self.generateTemporaryKeys()
+
+      # Create shared secret using both the sender and recipient's public keys
+      shared_secret = TU.computeSharedSecret(self.publicKey, recipient_public_key)
+      dead_drop, self.deadDropServerIndex = self.computeDeadDrop(shared_secret)
+      data = TU.encryptMessage(shared_secret, f"User Invitation w/ pk: {self.publicKey}")
+
+      # Compute the message for the Dead Drop Server. It includes how to 
+      # send it back (the chain) and the dead drop.
+      # It has the following form: 
+      # Before encryption: "myChain#deadDrop#data"
+      # After encryption: "deadDropServer#serialized_pk#encrypted_data"
+      data = "{}#{}#{}".format(self.myChain, dead_drop, data.decode("latin_1"))
+      server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
+      local_sk, local_pk = self.temporaryKeys[-1]
+      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
+      data = TU.encryptMessage(sharedSecret, data)
+      serialized_local_pk = TU.serializePublicKey(local_pk)
+      data = "{}#{}#{}".format(self.deadDropServerIndex, serialized_local_pk,
+                               data.decode("latin_1"))
+      # Next step:
+      # Apply onion routing
+      data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
+                                  self.chainServersPublicKeys,
+                                  data)
       
+
+      # Send our message to the deaddrop; 2 Indicates we are initiating a conversation via dialing protocol
+      message.setNetInfo(2)
+      self.sock.sendall(str(message).encode("utf-8"))
+      self.sock.close()
+
+      # Now open up the listening port to listen for a response
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.bind(('localhost', self.localPort))
+      self.sock.listen(1) # listen for 1 connection
+      conn, server_addr = self.sock.accept()
+      # All messages are fixed to 4K
+      recvStr = conn.recv(32768).decode("utf-8")
+      conn.close()
+
+      # Convert response to message
+      m = Message()
+      m.loadFromString(recvStr)
+      
+      # Undo onion routing to the payload
+      if self.partnerPublicKey != "": 
+         m.setPayload( self.decryptPayload(m.getPayload()) )
+      
+      return m
