@@ -14,7 +14,7 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 ## Week of May 18th
 
 ### Video
-   (TODO: Edric, you want to take it this week?)
+   https://youtu.be/nQ-TIus6fSo
 
 ### Weekly Summary for Group Members
 
@@ -29,9 +29,14 @@ https://docs.google.com/document/d/1lMMOIgBwF_SALd7GjLDgtXYJT7MnasdrnKQc54uMntg/
 	3.  
 
 - Edric Tom  
-	1.  Finished a general framework of the server rounds. Completed the Milestone 3 video. About 95% done with the Dead Drops subsystem design doc as well.     
+	1.  Finished a general framework of the server rounds. Completed the Milestone 3 video. Worked to 95% of total completion on the Dead Drops subsystem design doc, filling in my work from this week.         
 	2.  Finish implementing the server rounds. If we can send messages between more than one client, then implement message matching.     
-	3.  Currently stuck on 3 things: forcing users to send messages only within a server round, retrieving a shared key between two clients in order to calculate the new dead drop location after the end of a round, and message matching (I don't think this can be implemented yet until we are able to send messages between clients and not to and from the same client).    
+	3.  Currently stuck on 3 things: forcing users to send messages only within a server round, retrieving a shared key between two clients in order to calculate the new dead drop location after the end of a round, and message matching. My portion of the project does not have extensive coding, so most of the time is being spent trying to figure out how to implement everything correctly, ensuring that there are no bugs with the network code and nothing breaks as a result of my code.            
+	**Commits**:         
+	https://github.com/Ocete/ECS-153-Final-project/commit/15d6e785f5c08bbc907abaaf205e48c9f414a7a4          
+	https://github.com/Ocete/ECS-153-Final-project/commit/f91466709972961900813a481fdbe3bd0da8886a           
+	**Design Docs**:          
+	https://docs.google.com/document/d/1UwTi2pzKUIhbZcCzO_i3td9yvJVwlYcYBza1qwFD8DY/edit?usp=sharing          
 
 - Skyler Bala  
 	1.  
