@@ -120,3 +120,6 @@ https://www.youtube.com/watch?v=GLXdrHr1E7A
 	3. Nothing  
 
 - Skyler Bala  
+	1. Getting up to speed w/ codebase
+	2. Beginning of implementation of dialing protocol (protocol used to initiate conversations)
+	3. AR: Refactoring of end-to-end test to use the dialing protocol w/ invitation dead drop instances to initiate conversations
