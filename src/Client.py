@@ -138,7 +138,7 @@ class Client:
       serialized_local_pk = TU.serializePublicKey(local_pk)
       data = "{}#{}#{}".format(self.deadDropServerIndex, serialized_local_pk,
                                data.decode("latin_1"))
-      # Next step:
+      
       # Apply onion routing
       data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
                                   self.chainServersPublicKeys,
