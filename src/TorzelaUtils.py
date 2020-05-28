@@ -278,4 +278,33 @@ def testKeySerialization():
       
    
    
+def testAsync():
+   import asyncio
+   import time
+   import threading
+   import logging
+   import sys
+   
+   def goaaaaa(i, lock):
+      logging.info("goaaaa")
+      print("gaaaao", flush=True)
+      with (yield from lock):
+         logging.info(i)
+         time.sleep(1)
+         logging.info(i)
       
+         
+   lock = asyncio.Lock()
+   
+   threading.Thread(target=goaaaaa, args=(1, lock,)).start()
+   threading.Thread(target=goaaaaa, args=(3, lock,)).start()
+   threading.Thread(target=goaaaaa, args=(5, lock,)).start()
+   time.sleep(10)
+   print("go")
+   # t1.join()
+   # t2.join()
+   # t3.join()
+      
+         
+   
+   

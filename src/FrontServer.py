@@ -44,13 +44,7 @@ class FrontServer:
       # listening port, and <Public Key> is the client's public key
       self.clientList = []
 
-      # We need to spawn off a thread here, else we will block
-      # the entire program
-      threading.Thread(target=self.setupConnection, args=()).start()
- 
-      # Setup main listening socket to accept incoming connections
-      threading.Thread(target=self.listen, args=()).start()
-
+   
       # These arrays hold their information during each round. Position i-th
       # of each array represents their respective data:
       #    key ; (ip, port) ; message -- respectively
@@ -62,6 +56,14 @@ class FrontServer:
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )         
+
+      # We need to spawn off a thread here, else we will block
+      # the entire program
+      threading.Thread(target=self.setupConnection, args=()).start()
+ 
+      # Setup main listening socket to accept incoming connections
+      threading.Thread(target=self.listen, args=()).start()
+
 
    def getPublicKey(self):
       return self.publicKey
@@ -119,8 +121,6 @@ class FrontServer:
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
       clientIP = client_addr[0]
-      # TODO (matthew help jose pls) -> how do I assign the clientPort here?
-      clientPort = "?????"
 
       print("FrontServer got " + clientData)
 
@@ -132,7 +132,7 @@ class FrontServer:
          # TODO (jose/matthew) -> First this is not the public key of the 
          # client it is the local one. second, we don't need to store this here
          # it is stored in self.clientLocalKeys. third, the server shouldn't know 
-         # the client public key, just the local one. This is inconsistant.
+         # the client public key, just the local one. This is inconsistent.
          clientPublicKey = TU.deserializePublicKey(clientPublicKey) 
          
          # Build the entry for the client. See clientList above
@@ -143,13 +143,11 @@ class FrontServer:
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards
-         # a dead drop only if the current round is active
-         
-         if self.currentRound.open:
-            # If we already have a message from this client, drop this one.
-               # TODO -> jose
+         # a dead drop only if the current round is active and the client 
+         # hasn't already send a msessage
+         if self.currentRound.open and clientIP not in self.clientIPs:
             
-            # Onion routing stuff
+            # Decrypt one layer of the onion message
             clientLocalKey, newPayload = TU.decryptOnionLayer(
                   self.__privateKey, clientMsg.getPayload(), serverType=0)
             clientMsg.setPayload(newPayload)
@@ -161,27 +159,17 @@ class FrontServer:
             self.clientLocalKeys(clientLocalKey)
             self.clientIPs(clientIP)
             self.clientMessages.append(clientMsg)
-            
-            # Move the following code to runRound
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.nextServerIP, self.nextServerPort))
-            sock.sendall(str(clientMsg).encode("utf-8"))
-            sock.close()
          
       elif clientMsg.getNetInfo() == 2:
          # TODO -> add a lock here, same as with netinfo == 1
          
-         # Onion routing stuff
+         # Encrypt one layer of the onion message
          clientLocalKey = self.clientLocalKeys[ len(self.clientLocalKeys) ] 
-         # TODO: This is wrong, we have to unsshuffle first
-         # Workaround: SHUFFLE THE KEYS TOO using the same permutation
-         
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
                                            clientLocalKey, 
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
          self.clientMessages.append(clientMsg)
-   
    
    # A thread running this method will be in charge of the different rounds
    async def manageRounds(self):
@@ -241,8 +229,22 @@ class FrontServer:
                                                          permutation)
       
       # Forward all the messages to the next server
-      # TODO -> one message containing "nMessages"
-      # TODO -> for msg in shuffledmessages, send it
+      # Send a message to the next server notifying of the numbers of 
+      # messages that will be sent
+      firstMsg = Message()
+      firstMsg.setNetInfo(4)
+      firstMsg.setPayload("{}".format(nMessages))
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      sock.connect((self.nextServerIP, self.nextServerPort))
+      sock.sendall(str(firstMsg).encode("utf-8"))
+      sock.close()
+      
+      # Send all the messages to the next server
+      for msg in shuffledMessages:
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect((self.nextServerIP, self.nextServerPort))
+         sock.sendall(str(msg).encode("utf-8"))
+         sock.close()
       
       # Restart the messages so that we receive the responses from the 
       # next server
@@ -258,19 +260,21 @@ class FrontServer:
       # Unshuffle the messages
       self.clientMessages = TU.unshuffleMessages(self.clientMessages, permutation)
       
-      # TODO -> send every message back to the correct client.
-      
-      # Message going back to client
-      # This is where we will have to use the self.clientIPs to determine
-      # which client should get the message...right now we are just
-      # sending the message to all clients <- TODO (jose), this will
-      # be done in runRound
-      for client in self.clientList:
+      # Send each response back to the correct client
+      for clientIP, msg in zip(self.clientIPs, self.clientMessages):
+         # Find the client port using the clients list
+         matches = [ clientIpPort[1] for clientIpPort, clientKey in 
+                    self.clientList if clientIpPort[0] == clientIP]
+         if len(matches) == 0:
+            print("Front server error: couldn't find ip where to send the response")
+            continue
+         elif len(matches) > 1:
+            print("Front server error: too many ips where to send the response")
+            continue
+         clientPort = int(matches[0])
+         
+         # Send the response
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         # clientPublicKey = client[1] -- we don't need this here
-         clientIP = client[0][0]
-         clientPort = int(client[0][1])
-         tempSock.connect((clientIP,clientPort))
-         tempSock.sendall(str(clientMsg).encode("utf-8"))
+         tempSock.connect((clientIP, clientPort))
+         tempSock.sendall(str(msg).encode("utf-8"))
          tempSock.close()
-      

@@ -30,6 +30,9 @@ class Message:
    #           dead drop back to the client. The dead drop
    #           will flip this value from 1 to 2 when sending
    #           the message back
+   #  Value 4: Used during the conversational protocol between servers
+   #           to show how many messages will be sent to the next server
+   #           in this round
    def setNetInfo(self, netinfo):
       self.netinfo = str(netinfo)
 

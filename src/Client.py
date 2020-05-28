@@ -39,6 +39,7 @@ class Client:
       self.temporaryKeys = []
       
       # TODO: All the following values must be obtained from the Front Server
+      # For now, set them manually during the test setup
       
       # The chain this client belongs to. It is provided by the Front
       # Server after the first connection.
