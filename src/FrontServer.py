@@ -30,9 +30,11 @@ class FrontServer:
       # Initialize round variables. This will allow us to track what
       # current round the server is on, in addition to the state that the
       # previous rounds are in
-      self.roundID = 1
+      self.roundID = 0
       self.rounds = {}
-      self.lock = asyncio.Lock()
+      self.lock = asyncio.Lock() 
+      self.roundDuration = 2
+      self.currentRound = ""
 
       # This will allow us to associate a client with it's public key
       # So that we can figure out which client should get which packet
@@ -49,10 +51,13 @@ class FrontServer:
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
 
-      # Used during for onion rotuing in the conversational protocol  
-      # TODO: make this a dict{ clientIp: key }
-      # The key will be updated each time a message from that client is received.
-      self.clientLocalKey = ""
+      # These arrays hold their information during each round. Position i-th
+      # of each array represents their respective data:
+      #    key ; (ip, port) ; message -- respectively
+      # for the message that arrived the i-th in the current round.
+      self.clientLocalKeys = []
+      self.clientIPsAndPorts = []
+      self.clientMessages = []
       
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
@@ -93,17 +98,13 @@ class FrontServer:
       self.listenSock.bind(('localhost', self.localPort))
       self.listenSock.listen(10) # buffer 10 connections
    
+      # Create a new thread to handle the round timings
+      threading.Thread(target=self.runRound, args=(self.roundID, self.roundDuration)).start()   
+   
       while True:
          print("FrontServer awaiting connection")
+         
          conn, client_addr = self.listenSock.accept()
-
-         # Continuously run a 2 second round, constantly updating as the
-         # front server listens for incoming connections
-         # To do this, we run the rounds in a separate thread
-         roundDuration = 2
-         print("Server on round: ", self.roundID)
-         threading.Thread(target=self.runRound, args=(self.roundID, roundDuration)).start()
-
          print("FrontServer accepted connection from " + str(client_addr))
 
          # Spawn a thread to handle the client
@@ -117,6 +118,9 @@ class FrontServer:
       # Format as message
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
+      clientIP = client_addr[0]
+      # TODO (matthew help jose pls) -> how do I assign the clientPort here?
+      clientPort = "?????"
 
       print("FrontServer got " + clientData)
 
@@ -124,75 +128,143 @@ class FrontServer:
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
+         
+         # TODO (jose/matthew) -> First this is not the public key of the 
+         # client it is the local one. second, we don't need to store this here
+         # it is stored in self.clientLocalKeys. third, the server shouldn't know 
+         # the client public key, just the local one. This is inconsistant.
          clientPublicKey = TU.deserializePublicKey(clientPublicKey) 
          
          # Build the entry for the client. See clientList above
-         clientEntry = ((client_addr[0], clientPort), clientPublicKey)
+         clientEntry = ((clientIP, clientPort), clientPublicKey)
 
          if clientEntry not in self.clientList:
             self.clientList.append(clientEntry)
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards
-         # a dead drop. Just forward to next server
+         # a dead drop only if the current round is active
+         
+         if self.currentRound.open:
+            # If we already have a message from this client, drop this one.
+               # TODO -> jose
+            
+            # Onion routing stuff
+            clientLocalKey, newPayload = TU.decryptOnionLayer(
+                  self.__privateKey, clientMsg.getPayload(), serverType=0)
+            clientMsg.setPayload(newPayload)
+            
+            # Save the message data
+            # TODO (jose) -> use the lock here. Multiple threads could try to 
+            # access this info at the same time. In fact, we should process 
+            # messages with netinfo == 1 ONE AT A TIME or could create inconsistences.
+            self.clientLocalKeys(clientLocalKey)
+            self.clientIPsAndPorts( (clientIP, clientPort) )
+            self.clientMessages.append(clientMsg)
+            
+            # Move the following code to runRound
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((self.nextServerIP, self.nextServerPort))
+            sock.sendall(str(clientMsg).encode("utf-8"))
+            sock.close()
+         
+      elif clientMsg.getNetInfo() == 2:
+         # TODO -> add a lock here, same as with netinfo == 1
          
          # Onion routing stuff
-         self.clientLocalKey, newPayload = TU.decryptOnionLayer(
-               self.__privateKey, clientMsg.getPayload(), serverType=0)
-         clientMsg.setPayload(newPayload)
+         clientLocalKey = self.clientLocalKeys[ len(self.clientLocalKeys) ] 
+         # TODO: This is wrong, we have to unsshuffle first
+         # Workaround: SHUFFLE THE KEYS TOO using the same permutation
          
-         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect((self.nextServerIP, self.nextServerPort))
-         sock.sendall(str(clientMsg).encode("utf-8"))
-         sock.close()
-      elif clientMsg.getNetInfo() == 2: 
-         # Message going back to client
-         # This is where we will have to use the public key to determine
-         # which client should get the message...right now we are just
-         # sending the message to all clients <- TODO (matthew)
-         
-         # Onion routing stuff
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
+                                           clientLocalKey, 
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
+         self.clientMessages.append(clientMsg)
          
+         
+         # Message going back to client
+         # This is where we will have to use the self.clientIPs to determine
+         # which client should get the message...right now we are just
+         # sending the message to all clients <- TODO (jose), this will
+         # be done in runRound
          for client in self.clientList:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            clientPublicKey = client[1]
+            # clientPublicKey = client[1] -- we don't need this here
             clientIP = client[0][0]
             clientPort = int(client[0][1])
             tempSock.connect((clientIP,clientPort))
             tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
    
-   # Run server round
-   async def runRound(self, round, deadline):
+   
+   # A thread running this method will be in charge of the different rounds
+   async def manageRounds(self):
+      
+      # Reset the saved info about the messages for the round before it starts
+      self.clientLocalKeys = []
+      self.clientIPs = []
+      self.clientMessages = []
+      
       # Create the new round using our class above
-      currentRound = RoundInfo(round, deadline)
+      self.roundID += 1
+      self.currentRound = RoundInfo(round, self.roundDuration)
+      self.rounds[self.roundID] = self.currentRound
+      print("Front Server starts round: ", self.roundID)
+   
+      # Start timer
+      startTime = time.process_time()
 
-      # Let clients send messages during this round only, do not allow
-      # another round to start up while one is in progress
-      async with self.lock:
-         # Add new round to the server's ongoing dictionary of rounds
-         self.rounds[round] = currentRound
+      # Allow clients to send messages for duration of round
+      # Clients can only send message while self.currentRound.open == True
+      while time.process_time() - startTime < self.roundDuration:
+         continue
       
-         # Start timer
-         startTime = time.process_time()
+      # Now that round has ended, mark current round as closed
+      self.currentRound.open = False
+      self.roundID = self.roundID + 1
 
-         # Allow clients to send messages for duration of round
-         while time.process_time() - startTime < deadline:
-            # TODO: Figure out how to restrict clients to sending messages
-            # only within this time frame
-            continue
+      # Iterate through clients and have them connect to a new dead drop
+      # server -> NOTE FROM JOSE: you don't need to do this. The msg already
+      # contains that info, it's processed in the client. You will just 
+      # need to use it in the Dead Drop Server afterwards. You can delete
+      # this comment when you read it Edric
       
-         # Now that round has ended, mark current round as closed
-         currentRound.open = False
-         self.roundID = self.roundID + 1
-
-         # Iterate through clients and have them connect to a new dead drop
-         # server
-         for client in self.clientList:
-            # TODO: Find a way to compute new dead drop server for each
-            # client
-            continue
+      # Now that all the messages are stored in self.clientMessages,
+      # run the round
+      self.runRound()
+      
+      print("Front Server finished round: ", self.roundID)
+   
+   # Runs server round. Assuming that the messages are stores in 
+   # self.clientMessages, adds noise, shuffles them and forwards them to
+   # the next server
+   def runRound(self):
+      
+      # TODO (jose): Noise addition goes here
+      
+      # Apply the mixnet by shuffling the messages
+      nMessages = len(self.clientMessages)
+      permutation = TU.generatePermutation(nMessages)
+      shuffledmessages = TU.shuffleMessages(self.clientMessages, permutation)
+      
+      # Forward all the messages to the next server
+      # TODO -> one message containing "nMessages"
+      # TODO -> for msg in shuffledmessages, send it
+      
+      # Restart the messages so that we receive the responses from the 
+      # next server
+      self.clientMessages = []
+      
+      # Wait until we have received all the responses. These responses are
+      # handled in the main thread using the method handleMsg with 
+      # msg.getNetInfo == 2
+      print("Front Server waiting for responses from Middle Server")
+      while len(self.clientMessages) < nMessages:
+         continue
+      
+      # Unshuffle the messages
+      self.clientMessages = TU.unshuffleMessages(self.clientMessages, permutation)
+      
+      # TODO -> send every message back to the correct client.
+      
