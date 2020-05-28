@@ -170,31 +170,31 @@ def generatePermutation(n):
    shuffle(l)
    return (l)
    
-# Shuffles the messages following the given permutation
-def shuffleMessages(messages, permutation):
-   if len(messages) != len(permutation): 
-      print("Error shuffling messages. The size of the permutation and" + 
-            "the number of messages must be the same")
+# Shuffles the elements in the array toShuffle following the given permutation
+def shuffleWithPermutation(toShuffle, permutation):
+   if len(toShuffle) != len(permutation): 
+      print("Error while shuffling. The size of the permutation and" + 
+            "the number of elements to shuffle must be the same")
       return (-1)
    
-   shuffledMessages = [ 0 for _ in range(len(permutation)) ]
-   for i, msg in zip(permutation, messages):
-      shuffledMessages[i] = msg
+   shuffled = [ 0 for _ in range(len(permutation)) ]
+   for i, msg in zip(permutation, toShuffle):
+      shuffled[i] = msg
       
-   return shuffledMessages
+   return shuffled
 
 # Unshuffles the messages following the given permutation
-def unshuffleMessages(messages, permutation):
-   if len(messages) != len(permutation): 
+def unshuffleWithPermutation(toShuffle, permutation):
+   if len(toShuffle) != len(permutation): 
       print("Error unshuffling messages. The size of the permutation and" + 
             "the number of messages must be the same")
       return (-1)
    
-   unshuffledMessages = []
+   unshuffled = []
    for i in permutation:
-      unshuffledMessages.append( messages[i] )
+      unshuffled.append( toShuffle[i] )
       
-   return unshuffledMessages
+   return unshuffled
       
 def testShuffling():
    error = False
@@ -205,8 +205,8 @@ def testShuffling():
       messages = generatePermutation(size)
       
       perm = generatePermutation(size)
-      shuffledMessages = shuffleMessages(messages, perm)
-      unshuffledMessages = unshuffleMessages(shuffledMessages, perm)
+      shuffledMessages = shuffleWithPermutation(messages, perm)
+      unshuffledMessages = unshuffleWithPermutation(shuffledMessages, perm)
       
       if messages != unshuffledMessages:
          print("FAILURE.\nBefore:{}\nAfter: {}".format(messages, unshuffledMessages))

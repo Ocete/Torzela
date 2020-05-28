@@ -56,7 +56,7 @@ class FrontServer:
       #    key ; (ip, port) ; message -- respectively
       # for the message that arrived the i-th in the current round.
       self.clientLocalKeys = []
-      self.clientIPsAndPorts = []
+      self.clientIPs = []
       self.clientMessages = []
       
       # The server keys
@@ -159,7 +159,7 @@ class FrontServer:
             # access this info at the same time. In fact, we should process 
             # messages with netinfo == 1 ONE AT A TIME or could create inconsistences.
             self.clientLocalKeys(clientLocalKey)
-            self.clientIPsAndPorts( (clientIP, clientPort) )
+            self.clientIPs(clientIP)
             self.clientMessages.append(clientMsg)
             
             # Move the following code to runRound
@@ -181,21 +181,6 @@ class FrontServer:
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
          self.clientMessages.append(clientMsg)
-         
-         
-         # Message going back to client
-         # This is where we will have to use the self.clientIPs to determine
-         # which client should get the message...right now we are just
-         # sending the message to all clients <- TODO (jose), this will
-         # be done in runRound
-         for client in self.clientList:
-            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # clientPublicKey = client[1] -- we don't need this here
-            clientIP = client[0][0]
-            clientPort = int(client[0][1])
-            tempSock.connect((clientIP,clientPort))
-            tempSock.sendall(str(clientMsg).encode("utf-8"))
-            tempSock.close()
    
    
    # A thread running this method will be in charge of the different rounds
@@ -246,7 +231,14 @@ class FrontServer:
       # Apply the mixnet by shuffling the messages
       nMessages = len(self.clientMessages)
       permutation = TU.generatePermutation(nMessages)
-      shuffledmessages = TU.shuffleMessages(self.clientMessages, permutation)
+      shuffledMessages = TU.shuffleWithPermutation(self.clientMessages,
+                                                   permutation)
+      
+      # Also shuffle the messages so they still match the clientMessages:
+      # self.clientLocalKeys[ i ] is the key that unlocks message self.clientMessges[ i ]
+      # This is used afterwards in handleMessage, getNetInfo() == 2
+      self.clientLocalKeys = TU.unshuffleWithPermutation(self.clientLocalKeys,
+                                                         permutation)
       
       # Forward all the messages to the next server
       # TODO -> one message containing "nMessages"
@@ -267,4 +259,18 @@ class FrontServer:
       self.clientMessages = TU.unshuffleMessages(self.clientMessages, permutation)
       
       # TODO -> send every message back to the correct client.
+      
+      # Message going back to client
+      # This is where we will have to use the self.clientIPs to determine
+      # which client should get the message...right now we are just
+      # sending the message to all clients <- TODO (jose), this will
+      # be done in runRound
+      for client in self.clientList:
+         tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         # clientPublicKey = client[1] -- we don't need this here
+         clientIP = client[0][0]
+         clientPort = int(client[0][1])
+         tempSock.connect((clientIP,clientPort))
+         tempSock.sendall(str(clientMsg).encode("utf-8"))
+         tempSock.close()
       
