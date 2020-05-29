@@ -162,14 +162,13 @@ class DeadDrop:
                2. All Users periodicallally poll their assigned invitation dead drop to checksfor invitations
             """
             print('Dialing Protocol REACHED DEADDROP')
-            print('client local port' + str(self.invitationClientPort))
             conn.close()
             # Onion routing stuff
             self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
                 self.__privateKey, clientMsg.getPayload(), serverType=2)
             clientMsg.setPayload(newPayload)
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            tempSock.connect(('localhost', self.invitationClientPort))
+            tempSock.connect(('localhost', int(self.invitationClientPort)))
             tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
             return
