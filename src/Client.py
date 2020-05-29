@@ -272,8 +272,9 @@ class Client:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       print('listening invitationdead', str(self.localPort))
       self.sock.bind(('localhost', self.localPort))
-      self.sock.listen(1) # listen for 1 connection
+      self.sock.listen(2) # listen for 1 connection
       conn, server_addr = self.sock.accept()
+      print(server_addr)
       # All messages are fixed to 4K
       recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
