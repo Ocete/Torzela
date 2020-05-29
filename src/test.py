@@ -76,9 +76,9 @@ def testDialingProtocol():
    for client in clients:
       client.chainServersPublicKeys = [ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
       client.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
-
+      
    # Let client 1 listen to invitations in its designated invitation deaddrop
-   # invitation = clients[1].download_invitations(initial_port+4)
+   invitation = clients[1].download_invitations(initial_port+4)
    
    # Let client 0 dial client 1 (1st arg = partner w/ whom to contact w/)
    thread = threading.Thread(target=clients[0].dial, args=(clients[1].publicKey,))

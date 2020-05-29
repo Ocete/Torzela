@@ -243,7 +243,7 @@ class Client:
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
 
-      return None
+      return
    
    def download_invitations(self, invitationDeadDropPort: str):
       time.sleep(15)
