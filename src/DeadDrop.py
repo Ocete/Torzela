@@ -148,13 +148,13 @@ class DeadDrop:
                 tempSock.close()
         elif clientMsg.getNetInfo() == 3:
             """
-            Handle Dialing Protocol/ Invitation 
+            Handle Dialing Protocol/ Invitation
             Dialing Protocol
             1. How Dialing is Facilitated?
                1. Dialing Facilitated in Rounds every 10 minutes
                2. For each dialing round we create N invitation deaddrops
                      Each user is designated an invitation deaddrop via pk
-            2. How to Dial a User 
+            2. How to Dial a User
                1. UserA dials UserB by placing a message into UserB's invitation deaddrop
                   1. Invitation deaddrop assigned at the beginning of the round
                   2. Message Contents = sender's pk, nonce, and MAC encrypted w/ recipient's pk
@@ -167,17 +167,19 @@ class DeadDrop:
                 self.__privateKey, clientMsg.getPayload(), serverType=2)
             clientMsg.setPayload(newPayload)
             self.invitations.append(clientMsg)
-            
             return
-         elif clientMsg.getNetInfo() == 4:
+
+        elif clientMsg.getNetInfo() == 4:
             if self.invitations:
-               return
+                return
 
             clientPort, clientPublicKey = clientMsg.getPayload().split("|")
-            clientPublicKey = TU.deserializePublicKey(clientPublicKey)  
+            clientPublicKey = TU.deserializePublicKey(clientPublicKey)
 
             for invitation in self.invitations:
-               tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-               tempSock.connect(('localhost', int(clientPort)))
-               tempSock.sendall(str(invitation).encode("utf-8"))
-               tempSock.close()
+                tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                tempSock.connect(('localhost', int(clientPort)))
+                tempSock.sendall(str(invitation).encode("utf-8"))
+                tempSock.close()
+
+            return
