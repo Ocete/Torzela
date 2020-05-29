@@ -230,34 +230,9 @@ class Client:
 
       # Prepare the payload following the conversational protocol
       message = Message()
-      self.generateTemporaryKeys()
+      message.setPayload("User Invitation")
 
-      # Create shared secret using both the sender secret key and recipient's public key
-      shared_secret = TU.computeSharedSecret(self.__privateKey, recipient_public_key)
-      dead_drop, self.deadDropServerIndex = self.computeDeadDrop(shared_secret)
-      data = TU.encryptMessage(shared_secret, f"User Invitation")
-
-      # Compute the message for the Dead Drop Server. It includes how to 
-      # send it back (the chain) and the dead drop.
-      # It has the following form: 
-      # Before encryption: "myChain#deadDrop#data"
-      # After encryption: "deadDropServer#serialized_pk#encrypted_data"
-      data = "{}#{}#{}".format(self.myChain, dead_drop, data.decode("latin_1"))
-      server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
-      local_sk, local_pk = self.temporaryKeys[-1]
-      sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
-      data = TU.encryptMessage(sharedSecret, data)
-      serialized_local_pk = TU.serializePublicKey(local_pk)
-      data = "{}#{}#{}".format(self.deadDropServerIndex, serialized_local_pk,
-                               data.decode("latin_1"))
-      # Next step:
-      # Apply onion routing
-      data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
-                                  self.chainServersPublicKeys,
-                                  data)
-      
-      # Prepare the payload following the conversational protocol
-      message.setPayload(data)
+      message.setPayload(self.preparePayload(msg.getPayload()))
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
