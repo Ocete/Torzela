@@ -285,6 +285,6 @@ class Client:
       
       sharedSecret = TU.computeSharedSecret(self.__privateKey, 
                                             self.partnerPublicKey)
-      m.setPayload(TU.decryptMessage(sharedSecret, data))
+      m.setPayload(TU.decryptMessage(sharedSecret, m.getPayload()))
 
       return m
