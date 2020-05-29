@@ -32,7 +32,6 @@ class DeadDrop:
             TU.createKeyGenerator())
 
         self.invitations = []
-        self.invitationClientPort = None
 
     def getPublicKey(self):
         return TU.serializePublicKey(self.publicKey)
@@ -167,9 +166,18 @@ class DeadDrop:
             self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
                 self.__privateKey, clientMsg.getPayload(), serverType=2)
             clientMsg.setPayload(newPayload)
-            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print('client port', str(self.invitationClientPort))
-            tempSock.connect(('localhost', int(self.invitationClientPort)))
-            tempSock.sendall(str(clientMsg).encode("utf-8"))
-            tempSock.close()
+            self.invitations.append(clientMsg)
+            
             return
+         elif clientMsg.getNetInfo() == 4:
+            if self.invitations:
+               return
+
+            clientPort, clientPublicKey = clientMsg.getPayload().split("|")
+            clientPublicKey = TU.deserializePublicKey(clientPublicKey)  
+
+            for invitation in self.invitations:
+               tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+               tempSock.connect(('localhost', int(clientPort)))
+               tempSock.sendall(str(invitation).encode("utf-8"))
+               tempSock.close()

@@ -217,7 +217,6 @@ class Client:
       return m
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
    def dial(self, recipient_public_key):
-      print('connection not made')
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
       # before we know the network is up and working
@@ -244,15 +243,28 @@ class Client:
 
       return None
    
-   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
+   def download_invitations(self, invitationDeadDropPort: str):
       self.invitationDeadDropPort = invitationDeadDropPort
-      # Now open up the listening port to listen for a response
+      dial_message = Message()
+      dial_message.setNetInfo(4)
+      dial_message.setPayload("{}|{}".format(self.localPort, TU.serializePublicKey(self.publicKey)))
+ 
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      while True:
+         try:
+            self.sock.connect(('localhost', self.invitationDeadDropPort))
+            self.sock.sendall(str.encode(str(dial_message)))
+            break
+         except:
+            time.sleep(10)
+
+      
+
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       print('listening invitationdead', str(self.localPort))
       self.sock.bind(('localhost', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
-      print('gang', server_addr)
       # All messages are fixed to 4K
       recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
