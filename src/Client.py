@@ -282,5 +282,6 @@ class Client:
       # Undo onion routing to the payload
       if self.partnerPublicKey != "": 
          m.setPayload( self.decryptPayload(m.getPayload()) )
-      
+      print("RECEIVED BOII")
+      print(m.payload)
       return m

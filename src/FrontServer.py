@@ -167,6 +167,7 @@ class FrontServer:
             tempSock.close()
       elif clientMsg.getNetInfo() == 3: 
          # Dialing Protocol: Client -> DeadDrop
+         print('Dialing Protocol: FrontServer')
 
          _, newPayload = TU.decryptOnionLayer(
                self.__privateKey, clientMsg.getPayload(), serverType=0)

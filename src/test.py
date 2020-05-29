@@ -49,7 +49,7 @@ def testNetwork():
    print("RECEIVED: " + returned.getPayload())
 
 
-def tesDialingProtocol():
+def testDialingProtocol():
    # This is the setup we have below with the port number that
    # each host listens on. Note that we specify both the port that
    # the host listens on and the port and IP of the next server in the chain
@@ -90,4 +90,4 @@ def tesDialingProtocol():
 
 
 if __name__ == "__main__":
-   tesDialingProtocol()
+   testDialingProtocol()
