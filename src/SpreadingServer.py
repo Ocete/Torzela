@@ -139,8 +139,7 @@ class SpreadingServer:
          tempSock.sendall(str(clientMsg).encode("utf-8"))
          tempSock.close()
       elif clientMsg.getNetInfo() == 3: 
-         # Dialing Protocol: Client -> DeadDrop
-         
+         # Dialing Protocol: Client -> DeadDrop         
          # Onion routing stuff
          deadDropServer, self.clientLocalKey, newPayload = TU.decryptOnionLayer(
                self.__privateKey, clientMsg.getPayload(), serverType=1)
