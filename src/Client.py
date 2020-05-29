@@ -287,7 +287,7 @@ class Client:
 
       return
    
-   def download_invitations(self, invitationDeadDropPort: str):
+   def download_invitations(self, invitationDeadDropPort):
       time.sleep(10)
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
@@ -317,9 +317,7 @@ class Client:
       
 
       data = m.getPayload()
-      print(data)
       data = data.encode('latin_1')
-      print(data)
       
       for potential_partner_pk in self.potential_partners_pks:
          try:
