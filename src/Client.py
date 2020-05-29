@@ -300,7 +300,7 @@ class Client:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
             m.setPayload(data)
-         execpt:
+         except:
             print('Invitation not meant for you')
 
       return m
