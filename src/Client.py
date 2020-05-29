@@ -222,7 +222,7 @@ class Client:
       # before we know the network is up and working
       while not self.connectionMade:
          time.sleep(1)
-
+      print('Dialing')
       # Connect to next server
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
