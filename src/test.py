@@ -76,7 +76,7 @@ def testDialingProtocol():
       # potential partners = set of all other available clients to speak to
       # not the same as partner client, the client w/ whom you are currently speaking with
       client.potential_partner_pks = [client.publicKey for client in clients]
-   clients[1].partnerPublicKey = clients[0].publicKey
+  
    # Let client 0 dial client 1 (1st arg = partner w/ whom to contact w/)
    clients[0].dial(clients[1].publicKey)
    # Let client 1 listen to invitations in its designated invitation deaddrop
