@@ -64,7 +64,6 @@ class DeadDrop:
         clientMsg.loadFromString(clientData)
 
         print("Dead Drop got " + clientData)
-        print("netinfo" + clientMsg.getNetInfo())
 
         # Check if the packet is for setting up a connection
         if clientMsg.getNetInfo() == 0:
