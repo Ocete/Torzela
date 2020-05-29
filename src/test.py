@@ -85,6 +85,7 @@ def testDialingProtocol():
    # Set invitation dead drop of client to receive message; will listen to assigned invitation
    # dead drop for invitations
    clients[1].set_invitation_dead_drop(initial_port+4)
+   dead.invitationClientPort = clients[1].localPort
 
 
 if __name__ == "__main__":
