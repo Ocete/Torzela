@@ -262,7 +262,7 @@ class Client:
       return
    
    def download_invitations(self, invitationDeadDropPort: str):
-      time.sleep(15)
+      time.sleep(10)
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
       dial_message.setNetInfo(4)
@@ -299,6 +299,7 @@ class Client:
             print('potential partner key', self.potential_partners_pk)
             sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
+            print(data)
             m.setPayload(data)
          except:
             print('Invitation not meant for you')
