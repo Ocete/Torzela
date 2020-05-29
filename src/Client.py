@@ -217,6 +217,7 @@ class Client:
       return m
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
    def dial(self, recipient_public_key, invitationDeadDropPort):
+      print('connection not made')
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
       # before we know the network is up and working

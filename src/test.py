@@ -78,15 +78,13 @@ def testDialingProtocol():
 
    clients[0].partnerPublicKey = clients[1].publicKey
    clients[1].partnerPublicKey = clients[0].publicKey
-   clients[1].set_invitation_dead_drop(initial_port+4)
    
    # Client 0 dials Client 1
    clients[0].dial(clients[1].publicKey, initial_port+4)
    
-   # Print the message we receive. Right now, the message will go
-   # through the network until it reaches the Dead Drop Server, then
-   # it will just be sent back, so we should get "Hello Torzela!" here
-   print("RECEIVED: ")
+   # Set invitation dead drop of client to receive message; will listen to assigned invitation
+   # dead drop for invitations
+   clients[1].set_invitation_dead_drop(initial_port+4)
 
 
 if __name__ == "__main__":
