@@ -259,7 +259,7 @@ class Client:
       return
    
    def download_invitations(self, invitationDeadDropPort: str):
-
+      time.sleep(20)
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
       dial_message.setNetInfo(4)
