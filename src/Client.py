@@ -216,7 +216,7 @@ class Client:
       
       return m
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
-   def dial(self, recipient_public_key, invitationDeadDropPort):
+   def dial(self, recipient_public_key):
       print('connection not made')
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
@@ -228,11 +228,14 @@ class Client:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
 
-      # Prepare the payload following the conversational protocol
       message = Message()
       message.setPayload("User Invitation")
 
-      message.setPayload(self.preparePayload(msg.getPayload()))
+      # Set the user to receive the invitation
+      self.partnerPublicKey = recipient_public_key
+      
+      # Prepare the payload following the conversational protocol
+      message.setPayload(self.preparePayload(message.getPayload()))
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
@@ -257,7 +260,6 @@ class Client:
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
-      print('payload',m.getPayload())
       
       sharedSecret = TU.computeSharedSecret(self.__privateKey, 
                                             self.partnerPublicKey)
