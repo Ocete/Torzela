@@ -176,7 +176,7 @@ class DeadDrop:
 
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
          clientPublicKey = TU.deserializePublicKey(clientPublicKey)
-
+         print(clientPort)
          for invitation in self.invitations:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tempSock.connect(('localhost', int(clientPort)))

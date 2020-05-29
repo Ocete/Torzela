@@ -246,7 +246,7 @@ class Client:
       return None
    
    def download_invitations(self, invitationDeadDropPort: str):
-      time.sleep(20)
+      time.sleep(15)
 
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
@@ -262,7 +262,7 @@ class Client:
          except:
             time.sleep(1)
 
-      
+      print('here')
 
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       print('listening invitationdead', str(self.localPort))
