@@ -219,6 +219,19 @@ class Client:
       return m
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
    def dial(self, recipient_public_key):
+      """
+      Handle Dialing Protocol/ Invitation
+      Dialing Protocol
+      1. How Dialing is Facilitated?
+         1. Dialing Facilitated in Rounds every 10 minutes
+         2. For each dialing round we create N invitation deaddrops
+               Each user is designated an invitation deaddrop via pk
+      2. How to Dial a User
+         1. UserA dials UserB by placing a message into UserB's invitation deaddrop
+            1. Invitation deaddrop assigned at the beginning of the round
+            2. Message Contents = sender's pk, nonce, and MAC encrypted w/ recipient's pk
+         2. All Users periodicallally poll their assigned invitation dead drop to checksfor invitations
+      """
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
       # before we know the network is up and working
@@ -246,7 +259,6 @@ class Client:
       return
    
    def download_invitations(self, invitationDeadDropPort: str):
-      time.sleep(15)
 
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
@@ -262,10 +274,7 @@ class Client:
          except:
             time.sleep(1)
 
-      print('here')
-
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      print('listening invitationdead', str(self.localPort))
       self.sock.bind(('localhost', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
@@ -277,8 +286,8 @@ class Client:
       m = Message()
       m.loadFromString(recvStr)
       
-      sharedSecret = TU.computeSharedSecret(self.__privateKey, 
-                                            self.partnerPublicKey)
-      m.setPayload(TU.decryptMessage(sharedSecret, m.getPayload()))
+      sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+      new_payload = TU.decryptMessage(sharedSecret, m.getPayload())
+      m.setPayload(new_payload)
 
       return m
