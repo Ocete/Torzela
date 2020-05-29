@@ -259,7 +259,7 @@ class Client:
       return
    
    def download_invitations(self, invitationDeadDropPort: str):
-      time.sleep(20)
+      time.sleep(15)
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
       dial_message.setNetInfo(4)
@@ -285,7 +285,7 @@ class Client:
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
-      
+      print(self.__privateKey, self.partnerPublicKey)
       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
       new_payload = TU.decryptMessage(sharedSecret, m.getPayload())
       m.setPayload(new_payload)
