@@ -264,12 +264,7 @@ class Client:
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
 
-      return None
-   
-   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
-      self.invitationDeadDropPort = invitationDeadDropPort
-
-       # Now open up the listening port to listen for a response
+      # Now open up the listening port to listen for a response
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.bind(('localhost', self.localPort))
       self.sock.listen(1) # listen for 1 connection
@@ -283,7 +278,10 @@ class Client:
       m.loadFromString(recvStr)
       
       # Undo onion routing to the payload
-      if self.partnerPublicKey != "":
-         m.setPayload( self.decryptPayload(m.getPayload()) )
-      print("RECEIVED BOII")
+      if self.partnerPublicKey != "": 
+         m.setPayload( self.decryptPayload(m.getPayload()))
+      
       return m
+   
+   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
+      self.invitationDeadDropPort = invitationDeadDropPort
