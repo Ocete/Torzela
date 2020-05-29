@@ -264,12 +264,12 @@ class Client:
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
 
-      
+      print('listening', self.localPort)
+
       # Now open up the listening port to listen for a response
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.bind(('localhost', self.localPort))
-      self.sock.listen(10) # listen for 1 connection
-      print('listening', self.localPort)
+      self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
       recvStr = conn.recv(32768).decode("utf-8")
