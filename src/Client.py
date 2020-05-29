@@ -235,7 +235,7 @@ class Client:
       # Create shared secret using both the sender secret key and recipient's public key
       shared_secret = TU.computeSharedSecret(self.__privateKey, recipient_public_key)
       dead_drop, self.deadDropServerIndex = self.computeDeadDrop(shared_secret)
-      data = TU.encryptMessage(shared_secret, f"User Invitation w/ pk: {self.publicKey}")
+      data = TU.encryptMessage(shared_secret, f"User Invitation")
 
       # Compute the message for the Dead Drop Server. It includes how to 
       # send it back (the chain) and the dead drop.
