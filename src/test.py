@@ -79,13 +79,13 @@ def testDialingProtocol():
 
 
    # Let client 1 listen to invitations in its designated invitation deaddrop
-   # invitation = clients[1].download_invitations(initial_port+4)
+   invitation = clients[1].download_invitations(initial_port+4)
    
    # Let client 0 dial client 1 (1st arg = partner w/ whom to contact w/)
    thread = threading.Thread(target=clients[0].dial, args=(clients[1].publicKey,))
    thread.start()
    
-   # print("RECEIVED INVITATION: " + invitation.getPayload())
+   print("RECEIVED INVITATION: " + invitation.getPayload())
 
    
 
