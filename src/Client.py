@@ -264,8 +264,10 @@ class Client:
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
 
-      print('listening', self.localPort)
-
+      return None
+   
+   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
+      self.invitationDeadDropPort = invitationDeadDropPort
       # Now open up the listening port to listen for a response
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.bind(('localhost', self.localPort))
@@ -284,6 +286,3 @@ class Client:
          m.setPayload( self.decryptPayload(m.getPayload()))
       
       return m
-   
-   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
-      self.invitationDeadDropPort = invitationDeadDropPort
