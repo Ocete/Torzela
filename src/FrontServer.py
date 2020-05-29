@@ -17,7 +17,6 @@ class RoundInfo:
       self.round = newRound
       self.endTime = endTime
 
-
 class FrontServer:
    # Set the IP and Port of the next server. Also set the listening port
    # for incoming connections. The next server in the chain can
@@ -30,9 +29,9 @@ class FrontServer:
       # Initialize round variables. This will allow us to track what
       # current round the server is on, in addition to the state that the
       # previous rounds are in
-      self.roundID = 0
+      self.roundID = 1
       self.rounds = {}
-      self.lock = asyncio.Lock() 
+      self.lock = asyncio.Lock()
       self.roundDuration = 2
       self.currentRound = ""
 
@@ -44,7 +43,6 @@ class FrontServer:
       # listening port, and <Public Key> is the client's public key
       self.clientList = []
 
-   
       # These arrays hold their information during each round. Position i-th
       # of each array represents their respective data:
       #    key ; (ip, port) ; message -- respectively
@@ -64,6 +62,8 @@ class FrontServer:
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
 
+      # Create a new thread to handle the round timings
+      threading.Thread(target=self.manageRounds, args=()).start() 
 
    def getPublicKey(self):
       return self.publicKey
@@ -98,10 +98,7 @@ class FrontServer:
       # Listen for incoming connections
       self.listenSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.listenSock.bind(('localhost', self.localPort))
-      self.listenSock.listen(10) # buffer 10 connections
-   
-      # Create a new thread to handle the round timings
-      threading.Thread(target=self.runRound, args=(self.roundID, self.roundDuration)).start()   
+      self.listenSock.listen(10) # buffer 10 connections  
    
       while True:
          print("FrontServer awaiting connection")
@@ -156,15 +153,15 @@ class FrontServer:
             # TODO (jose) -> use the lock here. Multiple threads could try to 
             # access this info at the same time. In fact, we should process 
             # messages with netinfo == 1 ONE AT A TIME or could create inconsistences.
-            self.clientLocalKeys(clientLocalKey)
-            self.clientIPs(clientIP)
+            self.clientLocalKeys.append(clientLocalKey)
+            self.clientIPs.append(clientIP)
             self.clientMessages.append(clientMsg)
          
       elif clientMsg.getNetInfo() == 2:
          # TODO -> add a lock here, same as with netinfo == 1
          
          # Encrypt one layer of the onion message
-         clientLocalKey = self.clientLocalKeys[ len(self.clientLocalKeys) ] 
+         clientLocalKey = self.clientLocalKeys[ len(self.clientMessages) ] 
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
                                            clientLocalKey, 
                                            clientMsg.getPayload())
@@ -172,42 +169,55 @@ class FrontServer:
          self.clientMessages.append(clientMsg)
    
    # A thread running this method will be in charge of the different rounds
-   async def manageRounds(self):
+   def manageRounds(self):
+      while True:
+         time.sleep(10)
+         
+         # Reset the saved info about the messages for the round before it starts
+         self.clientLocalKeys = []
+         self.clientIPs = []
+         self.clientMessages = []
+         
+         # Create the new round using our class above
+         self.currentRound = RoundInfo(round, self.roundDuration)
+         self.rounds[self.roundID] = self.currentRound
+         print("Front Server starts round: ", self.roundID)
       
-      # Reset the saved info about the messages for the round before it starts
-      self.clientLocalKeys = []
-      self.clientIPs = []
-      self.clientMessages = []
-      
-      # Create the new round using our class above
-      self.roundID += 1
-      self.currentRound = RoundInfo(round, self.roundDuration)
-      self.rounds[self.roundID] = self.currentRound
-      print("Front Server starts round: ", self.roundID)
+         # Tell all the clients that a new round just started
+         firstMsg = Message()
+         firstMsg.setNetInfo(5)
+         for clientIpAndPort, clientPK in self.clientList:
+            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tempSock.connect((clientIpAndPort[0], int(clientIpAndPort[1])))
+            tempSock.sendall(str.encode(str(firstMsg)))
+            tempSock.close()
+            
+         # Start timer
+         startTime = time.process_time()
    
-      # Start timer
-      startTime = time.process_time()
-
-      # Allow clients to send messages for duration of round
-      # Clients can only send message while self.currentRound.open == True
-      while time.process_time() - startTime < self.roundDuration:
-         continue
-      
-      # Now that round has ended, mark current round as closed
-      self.currentRound.open = False
-      self.roundID = self.roundID + 1
-
-      # Iterate through clients and have them connect to a new dead drop
-      # server -> NOTE FROM JOSE: you don't need to do this. The msg already
-      # contains that info, it's processed in the client. You will just 
-      # need to use it in the Dead Drop Server afterwards. You can delete
-      # this comment when you read it Edric
-      
-      # Now that all the messages are stored in self.clientMessages,
-      # run the round
-      self.runRound()
-      
-      print("Front Server finished round: ", self.roundID)
+         # Allow clients to send messages for duration of round
+         # Clients can only send message while self.currentRound.open == True
+         while time.process_time() - startTime < self.roundDuration:
+            continue
+         
+         # Now that round has ended, mark current round as closed
+         self.currentRound.open = False
+   
+         # Iterate through clients and have them connect to a new dead drop
+         # server -> NOTE FROM JOSE: you don't need to do this. The msg already
+         # contains that info, it's processed in the client. You will just 
+         # need to use it in the Dead Drop Server afterwards. You can delete
+         # this comment when you read it Edric
+         
+         # TODO -> Once the noice addition is added, the rounds should ALWAYS 
+         # run, no matter if there are no messages
+         if len(self.clientMessages) > 0:
+            # Now that all the messages are stored in self.clientMessages,
+            # run the round
+            self.runRound()
+         
+         print("Front Server finished round: ", self.roundID)
+         self.roundID += 1
    
    # Runs server round. Assuming that the messages are stores in 
    # self.clientMessages, adds noise, shuffles them and forwards them to
@@ -225,7 +235,7 @@ class FrontServer:
       # Also shuffle the messages so they still match the clientMessages:
       # self.clientLocalKeys[ i ] is the key that unlocks message self.clientMessges[ i ]
       # This is used afterwards in handleMessage, getNetInfo() == 2
-      self.clientLocalKeys = TU.unshuffleWithPermutation(self.clientLocalKeys,
+      self.clientLocalKeys = TU.shuffleWithPermutation(self.clientLocalKeys,
                                                          permutation)
       
       # Forward all the messages to the next server
@@ -258,7 +268,8 @@ class FrontServer:
          continue
       
       # Unshuffle the messages
-      self.clientMessages = TU.unshuffleMessages(self.clientMessages, permutation)
+      self.clientMessages = TU.unshuffleWithPermutation(self.clientMessages, 
+                                                        permutation)
       
       # Send each response back to the correct client
       for clientIP, msg in zip(self.clientIPs, self.clientMessages):

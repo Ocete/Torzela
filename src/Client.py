@@ -6,6 +6,7 @@ import time
 import sys
 from message import Message
 import TorzelaUtils as TU
+import queue
 
 class Client:   
    # Configure the client with the IP and Port of the next server
@@ -18,6 +19,9 @@ class Client:
       # When getting a response from the network, this client
       # will listen on this port
       self.localPort = localPort
+      
+      # Queue of messages that will be sent to the Front Server, one per round
+      self.messagesQueue = queue.Queue()
   
       # Will be used to create multiple key when sending each message
       self.keyGenerator = TU.createKeyGenerator()
@@ -94,6 +98,27 @@ class Client:
       # Close the connection after we verify everything is working
       self.sock.close()
 
+      # Wait for a round to start, a message will be sent by the Front Server
+      while True:
+         tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         tempSock.bind(('localhost', self.localPort))
+         tempSock.listen(1) # listen for 1 connection
+         conn, server_addr = tempSock.accept()
+         recvStr = conn.recv(4096).decode("utf-8")
+         tempSock.close()
+      
+         msg = Message()
+         msg.loadFromString(recvStr)
+         if msg.getNetInfo() != 5:
+            print("Client error: waiting for round to start but received" +
+                  " a different type of message")
+            
+         response = self.sendAndRecvMsg()
+         if response != "":
+            print("Client received: {}".format(response.getPayload()))
+         else:
+            print("Client received empty message")
+            
    # Returns the dead drop chosen and the dead drop server where it's located.
    def computeDeadDrop(self, sharedSecret):
       aux = int.from_bytes(sharedSecret, 
@@ -175,33 +200,31 @@ class Client:
    # Send and receive a message from Torzela
    # Because we always receive a response, it doesn't
    # make sense to have two separate send and receive methods
-   def sendAndRecvMsg(self, msg):
-      # If the initial setup has not gone through,
-      # then just block and wait. We can't send anything
-      # before we know the network is up and working
-      while not self.connectionMade:
-         time.sleep(1)
+   # Should ONLY be called after a message from the Front Server stating that
+   # a new round just started
+   def sendAndRecvMsg(self):
+      if not self.connectionMade:
+         print("Client error: trying to send a message without the connection set up")
+
+      # If we don't have messages to send, create a new empty one
+      if self.messagesQueue.qsize() == 0:
+         self.newMessage("")
+      msg = self.messagesQueue.get()
 
       # Connect to next server
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
 
-      # Prepare the payload following the conversational protocol
-      msg.setPayload( self.preparePayload(msg.getPayload()) )
-
       # Send our message to the server
-      # the 1 means we are sending the message towards
-      # a dead drop 
-      msg.setNetInfo(1)
       self.sock.sendall(str(msg).encode("utf-8"))
       self.sock.close()
 
-      # Now open up the listening port to listen for a response
+      # Open up the listening port to listen for a response
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.bind(('localhost', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
-      # All messages are fixed to 4K
+      # All messages are fixed to 32K
       recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
 
@@ -212,6 +235,45 @@ class Client:
       # Undo onion routing to the payload
       if self.partnerPublicKey != "": 
          m.setPayload( self.decryptPayload(m.getPayload()) )
-      
+      else:
+         m.setpayload("")
+         
       return m
+      
+   # Receives a string, adds a new message with the given payload to the
+   # queue of messages that will be sent to the Front Server
+   def newMessage(self, payload):
+      msg = Message()
+      msg.setPayload(payload)
+      
+      # Prepare the payload following the conversational protocol
+      msg.setPayload( self.preparePayload(msg.getPayload()) )
+      
+      # This 1 means we are sending the message towards a dead drop 
+      msg.setNetInfo(1)
+      
+      self.messagesQueue.put(msg)
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       

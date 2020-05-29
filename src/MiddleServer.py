@@ -20,14 +20,7 @@ class MiddleServer:
       self.previousServerIP = 0
       self.previousServerPort = 0
 
-      # We need to spawn off a thread here, else we will block
-      # the entire program
-      threading.Thread(target=self.setupConnection, args=()).start()
- 
-      # Setup main listening socket to accept incoming connections
-      threading.Thread(target=self.listen, args=()).start()
-      
-      # Used during for onion rotuing in the conversational protocol  
+      # Used for onion rotuing in the conversational protocol  
       # The keys and messages will be updated each round
       self.clientLocalKeys = []
       self.clientMessages = []
@@ -36,6 +29,13 @@ class MiddleServer:
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )
+      
+      # We need to spawn off a thread here, else we will block
+      # the entire program
+      threading.Thread(target=self.setupConnection, args=()).start()
+ 
+      # Setup main listening socket to accept incoming connections
+      threading.Thread(target=self.listen, args=()).start()
       
    def getPublicKey(self):
       return self.publicKey
@@ -105,7 +105,7 @@ class MiddleServer:
          
          # TODO -> Add lock to this whole part
          
-         if self.nMessages >= self.clientMessages:
+         if self.nMessages <= len(self.clientMessages):
             print("Middle server error: received more messages than expected")
          
          # Decrypt one layer of the onion message
@@ -114,7 +114,7 @@ class MiddleServer:
          clientMsg.setPayload(newPayload)
          
          # Save the message data
-         self.clientLocalKeys(clientLocalKey)
+         self.clientLocalKeys.append(clientLocalKey)
          self.clientMessages.append(clientMsg)
          
          if self.nMessages == len(self.clientMessages):
@@ -124,9 +124,13 @@ class MiddleServer:
          # In here, we are handling messages send back
          # to the client. There is only one way to send packets
          
-         # Onion routing stuff
+         if self.nMessages <= len(self.clientMessages):
+            print("Middle server error: received more messages than expected")
+         
+         # Encrypt one layer of the onion message
+         clientLocalKey = self.clientLocalKeys[ len(self.clientMessages) ]
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
+                                           clientLocalKey, 
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
          self.clientMessages.append(clientMsg)
@@ -139,8 +143,6 @@ class MiddleServer:
          # It notifies us of a new round and how many messages are coming
          
          # TODO -> Add lock to this whole part
-         
-         # Onion routing stuff
          self.nMessages = int(clientMsg.getPayload())
          self.clientMessages = []
          self.clientLocalKeys = []
@@ -159,7 +161,7 @@ class MiddleServer:
       # Also shuffle the messages so they still match the clientMessages:
       # self.clientLocalKeys[ i ] is the key that unlocks message self.clientMessges[ i ]
       # This is used afterwards in handleMessage, getNetInfo() == 2
-      self.clientLocalKeys = TU.unshuffleWithPermutation(self.clientLocalKeys,
+      self.clientLocalKeys = TU.shuffleWithPermutation(self.clientLocalKeys,
                                                          self.permutation)
       
       # Forward all the messages to the next server
@@ -186,7 +188,7 @@ class MiddleServer:
       
    def forwardResponses(self):
       # Unshuffle the messages
-      self.clientMessages = TU.unshuffleMessages(self.clientMessages, 
+      self.clientMessages = TU.unshuffleWithPermutation(self.clientMessages, 
                                                  self.permutation)
       
       # Send the responses back to the previous server

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from message import Message
 from Client import Client
 from FrontServer import FrontServer
 from MiddleServer import MiddleServer
 from SpreadingServer import SpreadingServer
 from DeadDrop import DeadDrop
 import TorzelaUtils as TU
+import time
 
 def testNetwork():
    # This is the setup we have below with the port number that
@@ -18,7 +18,7 @@ def testNetwork():
    
    # We can do any kind of test we want in here...
    
-   initial_port = 7775
+   initial_port = 7710
    
    c = Client('localhost', initial_port+1, initial_port)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
@@ -34,16 +34,14 @@ def testNetwork():
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
    c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
    c.partnerPublicKey = c.publicKey
-   # c.privateDeadDropServerKey = TU.deserializePrivateKey(dead.getPrivateKey())
-   
+
    # Prepare the message
-   m = Message()
-   m.setPayload("Hello Torzela!")   
+   c.newMessage("Hello Torzela!")   
    
-   # Send this message into Torzela and get a response
-   returned = c.sendAndRecvMsg(m)
-   
-   # Print the message we receive. Right now, the message will go
+   # When the next round starts, the Front Server will notify the client,
+   # who will send the message "Hello Torzela". Right now, the message will go
    # through the network until it reaches the Dead Drop Server, then
-   # it will just be sent back, so we should get "Hello Torzela!" here
-   print("RECEIVED: " + returned.getPayload())
+   # it will just be sent back, so we should get "Hello Torzela!" from
+   # the client
+   time.sleep(50000)
+   

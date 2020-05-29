@@ -33,6 +33,8 @@ class Message:
    #  Value 4: Used during the conversational protocol between servers
    #           to show how many messages will be sent to the next server
    #           in this round
+   #  Value 5: Empty message used by the Front Servers to tell the clients
+   #           that a new round just started
    def setNetInfo(self, netinfo):
       self.netinfo = str(netinfo)
 

@@ -18,13 +18,10 @@ class DeadDrop:
       # is the port the previous server is using
       self.previousServers = []
 
-      # Setup main listening socket to accept incoming connections
-      threading.Thread(target=self.listen, args=()).start()
-      
-      # Used during for onion routing in the conversational protocol  
-      # TODO: make this a dict{ clientIp: key }
-      # The key will be updated each time a message from that client is received.
-      self.clientLocalKey = ""
+      # Used for onion rotuing in the conversational protocol  
+      # The keys and messages will be updated each round
+      self.clientLocalKeys = []
+      self.clientMessages = []
 
       # Dictionary to store all client keys, used for message matching later
       self.clientKeys = {}
@@ -33,6 +30,9 @@ class DeadDrop:
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )
 
+      # Setup main listening socket to accept incoming connections
+      threading.Thread(target=self.listen, args=()).start()
+      
    def getPublicKey(self):
       return TU.serializePublicKey(self.publicKey)
    
@@ -83,7 +83,7 @@ class DeadDrop:
          conn.close()
          
          # Onion routing stuff
-         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
+         clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
               self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
          
@@ -92,30 +92,62 @@ class DeadDrop:
          # deadDrop -> the deadDrop this message is accessing
          # newPayload -> RESPONSE message body
          
-         # Here there should be a bunch of code matching messages (maybe
-         # not yet but yeah)
-         
-         # Add an entry in the dictionary for the new client
-         self.clientKeys[client_addr] = self.clientLocalKey
+         # Save the message data
+         self.clientLocalKeys.append(clientLocalKey)
+         self.clientMessages.append(clientMsg)
 
+         if len(self.clientMessages) == self.nMessages:
+            self.runRound()
+    
+      elif clientMsg.getNetInfo() == 4: 
+         # In here, we handle the first message sent by the previous server.
+         # It notifies us of a new round and how many messages are coming
          
-         # Here we would normally encrypt the RESPONSE. For testing just send 
-         # the same message back
+         # TODO -> Add lock to this whole part
+         # TODO -> make this per spreading server with a dict
+         
+         self.nMessages = int(clientMsg.getPayload())
+         self.clientMessages = []
+         self.clientLocalKeys = []
+         
+   # This method matches the messages accessing equal dead drops and
+   # sends the responses back to the spreading servers
+   def runRound(self):
+      
+      # TODO (edric): compute the matches between the different clients.
+      # That is, for every two clients, if they are accessing the same dead
+      # drop, swap the messages, don't change anything else. 
+      # If a client does not recieve a response, return the empty message: ""
+      time.sleep(1)
+      
+      
+      # Encrypt all the messages before sending them back
+      for msg, clientLocalKey in zip(self.clientMessages, 
+                                     self.clientLocalKeys):
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
-                                           clientMsg.getPayload())
-         clientMsg.setPayload(newPayload)
-
+                                           clientLocalKey, 
+                                           msg.getPayload())
+         msg.setPayload(newPayload)
+         
          # We need to set this to 2 so that the other servers
          # in the chain know to send this back to the client
-         clientMsg.setNetInfo(2)
+         msg.setNetInfo(2)
+      
+      
          
-         # Send message back to all previous servers
-         for prevServer in self.previousServers:
+      # Send message back to all spreading servers
+      for prevServer in self.previousServers:
+         prevServerIP = prevServer[0]
+         prevServerPort = int(prevServer[1])
+         for msg in self.clientMessages:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            prevServerIP = prevServer[0]
-            prevServerPort = int(prevServer[1])
             tempSock.connect((prevServerIP, prevServerPort))
-            tempSock.sendall(str(clientMsg).encode("utf-8"))
+            tempSock.sendall(str(msg).encode("utf-8"))
             tempSock.close()
          
+      
+      # Restart all the data for the next round. Right now this is duplicated
+      # But I think it will be necesary to do it here for multiple spreading
+      # servers so leaving it here so I remember later
+      self.clientMessages = []
+      
