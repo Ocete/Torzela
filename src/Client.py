@@ -319,16 +319,14 @@ class Client:
       data = m.getPayload()
       data = data.encode("latin_1")
       
-      for potential_partner_pk in self.potential_partners_pks:
-         try:
-            print('private key', self.__privateKey)
-            print('potential partner key', self.potential_partners_pk)
-            sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
-            data = TU.decryptMessage(sharedSecret, data)
-            print(data)
-            m.setPayload(data)
-         except:
-            print('Invitation not meant for you')
+      # for potential_partner_pk in self.potential_partners_pks:
+      try:
+         sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+         data = TU.decryptMessage(sharedSecret, data)
+         print(data)
+         m.setPayload(data)
+      except:
+         print('Invitation not meant for you')
 
       return m
 
