@@ -21,17 +21,17 @@ class DeadDrop:
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
       
-      # Used during for onion routing in the conversational protocol  
+      # Used during for onion rotuing in the conversational protocol  
       # TODO: make this a dict{ clientIp: key }
       # The key will be updated each time a message from that client is received.
       self.clientLocalKey = ""
-
-      # Dictionary to store all client keys, used for message matching later
-      self.clientKeys = {}
       
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
             TU.createKeyGenerator() )
+
+      self.invitations = []
+      self.invitationClientPort = None
 
    def getPublicKey(self):
       return TU.serializePublicKey(self.publicKey)
@@ -62,7 +62,8 @@ class DeadDrop:
       clientMsg.loadFromString(clientData)
 
       print("Dead Drop got " + clientData)
-
+      print("netinfo" + clientMsg.getNetInfo)
+      
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
          # Add previous server's IP and port to our list of clients
@@ -90,14 +91,8 @@ class DeadDrop:
          # self.clientLocalKey -> the key used to encrypt the RESPONSE
          # clientChain -> the SpreadingServer where the RESPONSE should be sent
          # deadDrop -> the deadDrop this message is accessing
-         # newPayload -> RESPONSE message body
          
-         # Here there should be a bunch of code matching messages (maybe
-         # not yet but yeah)
-         
-         # Add an entry in the dictionary for the new client
-         self.clientKeys[client_addr] = self.clientLocalKey
-
+         # Here there should be a bunch of code matching messages (maybe not het but yeah=)
          
          # Here we would normally encrypt the RESPONSE. For testing just send 
          # the same message back
@@ -118,4 +113,61 @@ class DeadDrop:
             tempSock.connect((prevServerIP, prevServerPort))
             tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
+      elif clientMsg.getNetInfo() == 2: 
+         conn.close()
          
+         # Onion routing stuff
+         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(self.__privateKey, clientMsg.getPayload(), serverType=2)
+         clientMsg.setPayload(newPayload)
+         
+         # self.clientLocalKey -> the key used to encrypt the RESPONSE
+         # clientChain -> the SpreadingServer where the RESPONSE should be sent
+         # deadDrop -> the deadDrop this message is accessing
+         
+         # Here there should be a bunch of code matching messages (maybe not het but yeah=)
+         
+         # Here we would normally encrypt the RESPONSE. For testing just send 
+         # the same message back
+         newPayload = TU.encryptOnionLayer(self.__privateKey, 
+                                           self.clientLocalKey, 
+                                           clientMsg.getPayload())
+         clientMsg.setPayload(newPayload)
+
+         # We need to set this to 2 so that the other servers
+         # in the chain know to send this back to the client
+         clientMsg.setNetInfo(2)
+         
+         # Send message back to all previous servers
+         for prevServer in self.previousServers:
+            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            prevServerIP = prevServer[0]
+            prevServerPort = int(prevServer[1])
+            tempSock.connect((prevServerIP, prevServerPort))
+            tempSock.sendall(str(clientMsg).encode("utf-8"))
+            tempSock.close()
+      """
+      Handle Dialing Protocol/ Invitation 
+      Dialing Protocol
+      1. How Dialing is Facilitated?
+         1. Dialing Facilitated in Rounds every 10 minutes
+         2. For each dialing round we create N invitation deaddrops
+               Each user is designated an invitation deaddrop via pk
+      2. How to Dial a User 
+         1. UserA dials UserB by placing a message into UserB's invitation deaddrop
+            1. Invitation deaddrop assigned at the beginning of the round
+            2. Message Contents = sender's pk, nonce, and MAC encrypted w/ recipient's pk
+         2. All Users periodicallally poll their assigned invitation dead drop to checksfor invitations
+      """      
+      elif clientMsg.getNetInfo() == 3:
+         print('Dialing Protocol REACHED DEADDROP')
+
+         conn.close()
+         # Onion routing stuff
+         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
+              self.__privateKey, clientMsg.getPayload(), serverType=2)
+         clientMsg.setPayload(newPayload)
+         tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         tempSock.connect(('localhost',self.invitationClientPort))
+         tempSock.sendall(str(clientMsg).encode("utf-8"))
+         tempSock.close()    
+         return
