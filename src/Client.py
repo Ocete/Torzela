@@ -64,6 +64,8 @@ class Client:
       # It's computed in every round by the client
       self.deadDropServerIndex = 0
 
+      self.invitationDeadDropPort = None
+
    def setupConnection(self):
       # Connect to the next server to give it our listening port
       # and public key. The server will also be able to tell our ip
@@ -214,7 +216,7 @@ class Client:
       
       return m
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
-   def dial(self, recipient_public_key):
+   def dial(self, recipient_public_key, invitationDeadDropPort):
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
       # before we know the network is up and working
@@ -255,14 +257,18 @@ class Client:
                                   data)
       
 
-      # Send our message to the deaddrop; 2 Indicates we are initiating a conversation via dialing protocol
-      message.setNetInfo(2)
+      # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
+      message.setNetInfo(3)
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
 
-      # Now open up the listening port to listen for a response
+      return None
+   
+   def set_invitation_dead_drop(self, invitationDeadDropPort: str):
+      self.invitationDeadDropPort = invitationDeadDropPort
+
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('localhost', self.localPort))
+      self.sock.bind(('localhost', self.invitationDeadDropPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
