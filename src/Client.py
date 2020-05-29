@@ -114,11 +114,13 @@ class Client:
    # message and round an integer. Returns a string
    def preparePayload(self, data):
       self.generateTemporaryKeys()
-      
+
       ppk = self.partnerPublicKey
+
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
       if self.partnerPublicKey == "":
+         print('Fake Partner')
          _, ppk = TU.generateKeys(self.keyGenerator)
          data = TU.createRandomMessage(32)
       
@@ -258,7 +260,7 @@ class Client:
             self.sock.sendall(str.encode(str(dial_message)))
             break
          except:
-            time.sleep(10)
+            time.sleep(1)
 
       
 

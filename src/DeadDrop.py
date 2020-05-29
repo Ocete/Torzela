@@ -171,7 +171,7 @@ class DeadDrop:
 
       elif clientMsg.getNetInfo() == 4:
          print('Ping Download')
-         if self.invitations:
+         if not self.invitations:
             return
 
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
