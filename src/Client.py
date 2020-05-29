@@ -282,6 +282,7 @@ class Client:
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
+      print(recvStr)
       
       sharedSecret = TU.computeSharedSecret(self.__privateKey, 
                                             self.partnerPublicKey)
