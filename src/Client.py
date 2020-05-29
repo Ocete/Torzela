@@ -34,6 +34,9 @@ class Client:
       
       # TODO: We get to know this key through the Dialing Protocol
       self.partnerPublicKey = ""
+
+      # Set of clients w/ whom we can initiate a conversation with
+      self.potential_partners_pks = []
       
       # Temporary keys. They are computed for each sent message.
       self.temporaryKeys = []
@@ -285,14 +288,19 @@ class Client:
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
-      print('private key', self.__privateKey)
-      print('partner key', self.partnerPublicKey)
+      
 
       data = m.getPayload()
       data = data.encode("latin_1")
-
-      sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      data = TU.decryptMessage(sharedSecret, data)
-      m.setPayload(data)
+      
+      for potential_partner_pk in self.potential_partners_pks:
+         try:
+            print('private key', self.__privateKey)
+            print('potential partner key', self.potential_partners_pk)
+            sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
+            data = TU.decryptMessage(sharedSecret, data)
+            m.setPayload(data)
+         execpt:
+            print('Invitation not meant for you')
 
       return m

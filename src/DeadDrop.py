@@ -149,10 +149,12 @@ class DeadDrop:
       elif clientMsg.getNetInfo() == 3:
          print('Dialing Protocol REACHED DEADDROP')
          conn.close()
-         # Onion routing stuff
+         # Decrypt Dead Drop Layer
          self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
             self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
+         
+         # Add message to list of invitations
          self.invitations.append(clientMsg)
          return
 
