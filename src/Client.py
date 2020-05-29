@@ -229,7 +229,6 @@ class Client:
 
       # Prepare the payload following the conversational protocol
       message = Message()
-      self.preparePayload(message.getPayload())
       self.generateTemporaryKeys()
 
       # Create shared secret using both the sender and recipient's public keys
@@ -256,6 +255,8 @@ class Client:
                                   self.chainServersPublicKeys,
                                   data)
       
+      # Prepare the payload following the conversational protocol
+      message.setPayload(data)
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
