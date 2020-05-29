@@ -310,20 +310,21 @@ class Client:
       # All messages are fixed to 4K
       recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
-
+      print(recvStr)
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
       
 
       data = m.getPayload()
-      data = data
+      print(data)
+      print(data.decode)
       
       for potential_partner_pk in self.potential_partners_pks:
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
             data = TU.decryptMessage(sharedSecret, data)
-            m.setPayload(data.encode("latin_1"))
+            m.setPayload(data)
          except:
             print('Invitation not meant for you')
 
