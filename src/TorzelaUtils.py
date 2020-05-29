@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives import serialization
 
-from random import randrange
+from random import randrange, shuffle
 
 from string import ascii_letters
 from random import choice
@@ -161,6 +161,59 @@ def applyOnionRouting(localKeys, chainServersPublicKeys, data):
       chainServersPublicKeys.reverse()
       return data
 
+# Warning: This is not the most secure way to create a random permutation.
+# For real deployment, a different way to generate this permutation should
+# be implemented. This is beyond the scope of this project. Mpre information:
+# https://docs.python.org/3/library/random.html
+def generatePermutation(n):
+   l = list(range(n))
+   shuffle(l)
+   return (l)
+   
+# Shuffles the elements in the array toShuffle following the given permutation
+def shuffleWithPermutation(toShuffle, permutation):
+   if len(toShuffle) != len(permutation): 
+      print("Error while shuffling. The size of the permutation and" + 
+            "the number of elements to shuffle must be the same")
+      return (-1)
+   
+   shuffled = [ 0 for _ in range(len(permutation)) ]
+   for i, msg in zip(permutation, toShuffle):
+      shuffled[i] = msg
+      
+   return shuffled
+
+# Unshuffles the messages following the given permutation
+def unshuffleWithPermutation(toShuffle, permutation):
+   if len(toShuffle) != len(permutation): 
+      print("Error unshuffling messages. The size of the permutation and" + 
+            "the number of messages must be the same")
+      return (-1)
+   
+   unshuffled = []
+   for i in permutation:
+      unshuffled.append( toShuffle[i] )
+      
+   return unshuffled
+      
+def testShuffling():
+   error = False
+   for _ in range(1, 100):
+      size = randrange(10**3, 10**5)
+      
+      # For testing we just shuffle numbers instead of messages
+      messages = generatePermutation(size)
+      
+      perm = generatePermutation(size)
+      shuffledMessages = shuffleWithPermutation(messages, perm)
+      unshuffledMessages = unshuffleWithPermutation(shuffledMessages, perm)
+      
+      if messages != unshuffledMessages:
+         print("FAILURE.\nBefore:{}\nAfter: {}".format(messages, unshuffledMessages))
+         error = True
+   if not error:
+      print("SUCESS")
+
 def testEncryption():
    
    keyGenerator = createKeyGenerator()
@@ -222,3 +275,36 @@ def testKeySerialization():
             
    if not error:
       print("SUCESS")
+      
+   
+   
+def testAsync():
+   import asyncio
+   import time
+   import threading
+   import logging
+   import sys
+   
+   def goaaaaa(i, lock):
+      logging.info("goaaaa")
+      print("gaaaao", flush=True)
+      with (yield from lock):
+         logging.info(i)
+         time.sleep(1)
+         logging.info(i)
+      
+         
+   lock = asyncio.Lock()
+   
+   threading.Thread(target=goaaaaa, args=(1, lock,)).start()
+   threading.Thread(target=goaaaaa, args=(3, lock,)).start()
+   threading.Thread(target=goaaaaa, args=(5, lock,)).start()
+   time.sleep(10)
+   print("go")
+   # t1.join()
+   # t2.join()
+   # t3.join()
+      
+         
+   
+   

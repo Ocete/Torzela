@@ -21,7 +21,6 @@ class Message:
       self.msg_type = "0"
       self.payload = ""
    """
-
    Netinfo field values:
     Value 0: Messages with this value are used for 
              configuring the initial channel
@@ -31,8 +30,13 @@ class Message:
              dead drop back to the client. The dead drop
              will flip this value from 1 to 2 when sending
              the message back
-    Value 3: Packet Direction = Client -> DeadDrop; For Dialing
-             Protocol
+    Value 3: Dialing Protocol: Send Invitation
+    Value 4: Used during the conversational protocol between servers
+             to show how many messages will be sent to the next server
+             in this round
+    Value 5: Empty message used by the Front Servers to tell the clients
+             that a new round just started
+    Value 6: Dialing Protocol: Download invitations from invitation dead drop
    """
    def setNetInfo(self, netinfo):
       self.netinfo = str(netinfo)

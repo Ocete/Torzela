@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from message import Message
 from Client import Client
 from FrontServer import FrontServer
 from MiddleServer import MiddleServer
@@ -8,6 +7,7 @@ from SpreadingServer import SpreadingServer
 from DeadDrop import DeadDrop
 import TorzelaUtils as TU
 import threading
+import time
 
 def testNetwork():
    # This is the setup we have below with the port number that
@@ -35,19 +35,15 @@ def testNetwork():
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
    c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
    c.partnerPublicKey = c.publicKey
-   # c.privateDeadDropServerKey = TU.deserializePrivateKey(dead.getPrivateKey())
-   
+
    # Prepare the message
-   m = Message()
-   m.setPayload("Hello Torzela!")   
+   c.newMessage("Hello Torzela!")   
    
-   # Send this message into Torzela and get a response
-   returned = c.sendAndRecvMsg(m)
-   
-   # Print the message we receive. Right now, the message will go
+   # When the next round starts, the Front Server will notify the client,
+   # who will send the message "Hello Torzela". Right now, the message will go
    # through the network until it reaches the Dead Drop Server, then
    # it will just be sent back, so we should get "Hello Torzela!" here
-   print("RECEIVED: " + returned.getPayload())
+   time.sleep(50000)
 
 
 def testDialingProtocol():
@@ -87,8 +83,6 @@ def testDialingProtocol():
    invitation = clients[1].download_invitations(initial_port+4)
    
    print("RECEIVED INVITATION: " + invitation.getPayload())
-
-   
 
 
 if __name__ == "__main__":

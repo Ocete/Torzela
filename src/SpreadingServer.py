@@ -21,6 +21,16 @@ class SpreadingServer:
       self.previousServerIP = 0
       self.previousServerPort = 0
 
+      # Used for onion rotuing in the conversational protocol  
+      # The keys and messages will be updated each round
+      self.clientLocalKeys = []
+      self.clientMessages = []
+      self.nMessages = 0
+      
+      # The server keys
+      self.__privateKey, self.publicKey = TU.generateKeys( 
+            TU.createKeyGenerator() )
+      
       # We need to wait for all connections to setup, so create
       # an integer and initialize it with the number of dead drops
       # we are connecting to. Every time we successfully connect to
@@ -34,15 +44,6 @@ class SpreadingServer:
  
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
-
-      # Used during for onion rotuing in the conversational protocol  
-      # TODO: make this a dict{ clientIp: key }
-      # The key will be updated each time a message from that client is received.
-      self.clientLocalKey = ""
-      
-      # The server keys
-      self.__privateKey, self.publicKey = TU.generateKeys( 
-            TU.createKeyGenerator() )
       
    def getPublicKey(self):
       return self.publicKey
@@ -111,33 +112,110 @@ class SpreadingServer:
          # In here, we handle messages going from a client towards a dead drop
          # Send message to all dead drops
          
-         # Onion routing stuff
-         deadDropServer, self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+         # TODO -> Add lock to this whole part
+         
+         if self.nMessages <= len(self.clientMessages):
+            print("Spreading server error: received more messages than expected")
+         
+         # Decrypt one layer of the onion message
+         deadDropServer, clientLocalKey, newPayload = TU.decryptOnionLayer(
                self.__privateKey, clientMsg.getPayload(), serverType=1)
          clientMsg.setPayload(newPayload)
          
-         # TODO (matthew): deadDropServer contains towards which server
-         # the message has to be sent :D
+         # TODO (jose): deadDropServer contains towards which server
+         # the message has to be sent, manage that
          
-         for ddrop in self.nextServers:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect(ddrop)
-            self.sock.sendall(str(clientMsg).encode("utf-8"))
-            self.sock.close()
+         # Save the message data
+         self.clientLocalKeys.append(clientLocalKey)
+         self.clientMessages.append(clientMsg)
+         
+         if self.nMessages == len(self.clientMessages):
+            self.forwardMessages()
+            
       elif clientMsg.getNetInfo() == 2: 
          # Here we handle messages coming from a dead drop back
          # towards a client. Just forward back to server
          
-         # Onion routing stuff
+         if self.nMessages <= len(self.clientMessages):
+            print("Middle server error: received more messages than expected")
+         
+         # Encrypt one layer of the onion message
+         clientLocalKey = self.clientLocalKeys[ len(self.clientMessages) ]
          newPayload = TU.encryptOnionLayer(self.__privateKey, 
-                                           self.clientLocalKey, 
+                                           clientLocalKey, 
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
+         self.clientMessages.append(clientMsg)
          
+         if self.nMessages == len(self.clientMessages):
+            self.forwardResponses()
+         
+      elif clientMsg.getNetInfo() == 4: 
+         # In here, we handle the first message sent by the previous server.
+         # It notifies us of a new round and how many messages are coming
+         
+         # TODO -> Add lock to this whole part
+         
+         self.nMessages = int(clientMsg.getPayload())
+         self.clientMessages = []
+         self.clientLocalKeys = []
+
+   # Assuming that the messages are stores in self.clientMessages this method
+   # adds noise, shuffles the messages and forwards them to the next server
+   def forwardMessages(self):
+      
+      # TODO (jose): Noise addition goes here
+      
+      # Apply the mixnet by shuffling the messages
+      self.permutation = TU.generatePermutation(self.nMessages)
+      shuffledMessages = TU.shuffleWithPermutation(self.clientMessages,
+                                                   self.permutation)
+      
+      # Also shuffle the messages so they still match the clientMessages:
+      # self.clientLocalKeys[ i ] is the key that unlocks message self.clientMessges[ i ]
+      # This is used afterwards in handleMessage, getNetInfo() == 2
+      self.clientLocalKeys = TU.shuffleWithPermutation(self.clientLocalKeys,
+                                                         self.permutation)
+      
+      # Forward all the messages to the next server
+      # Send a message to the next server notifying of the numbers of 
+      # messages that will be sent
+      firstMsg = Message()
+      firstMsg.setNetInfo(4)
+      firstMsg.setPayload("{}".format(self.nMessages))
+      
+      # TODO send it only to the correct dds and the correct number of messages
+      for ddrop in self.nextServers:
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect(ddrop)
+         sock.sendall(str(firstMsg).encode("utf-8"))
+         sock.close()
+      
+      # Send all the messages to the next server
+      # TODO send it only to the correct dds
+      for msg in shuffledMessages:
+         for ddrop in self.nextServers:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect(ddrop)
+            sock.sendall(str(msg).encode("utf-8"))
+            sock.close()
+      
+      # Restart the messages so that we receive the responses from the 
+      # next server
+      self.clientMessages = []
+      
+   def forwardResponses(self):
+      # Unshuffle the messages
+      self.clientMessages = TU.unshuffleWithPermutation(self.clientMessages, 
+                                                 self.permutation)
+      
+      # Send the responses back to the previous server
+      for msg in self.clientMessages:
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((self.previousServerIP, self.previousServerPort))
-         tempSock.sendall(str(clientMsg).encode("utf-8"))
+         tempSock.sendall(str(msg).encode("utf-8"))
          tempSock.close()
+<<<<<<< HEAD
       elif clientMsg.getNetInfo() == 3: 
          # Dialing Protocol: Client -> DeadDrop         
          # Onion routing stuff
@@ -153,3 +231,6 @@ class SpreadingServer:
             self.sock.connect(ddrop)
             self.sock.sendall(str(clientMsg).encode("utf-8"))
             self.sock.close()
+=======
+         
+>>>>>>> origin/master
