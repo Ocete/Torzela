@@ -323,7 +323,7 @@ class Client:
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
             data = TU.decryptMessage(sharedSecret, data)
-            m.setPayload(data)
+            m.setPayload(data.decode("latin_1"))
          except:
             print('Invitation not meant for you')
 
