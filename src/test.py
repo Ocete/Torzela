@@ -80,7 +80,7 @@ def testDialingProtocol():
    clients[0].partnerPublicKey = clients[1].publicKey
    clients[1].partnerPublicKey = clients[0].publicKey
    
-   threading.Thread(target=clients[1].set_invitation_dead_drop, args=(initial_port+4)).start()
+   threading.Thread(target=clients[1].set_invitation_dead_drop, args=(initial_port+4,)).start()
    dead.invitationClientPort = clients[1].localPort
 
    # Client 0 dials Client 1
