@@ -318,7 +318,8 @@ class Client:
 
       data = m.getPayload()
       print(data)
-      print(data.decode)
+      data = data.encode('latin_1')
+      print(data)
       
       for potential_partner_pk in self.potential_partners_pks:
          try:
