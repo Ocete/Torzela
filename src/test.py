@@ -83,7 +83,6 @@ def testDialingProtocol():
    clients[0].dial(clients[1].publicKey)
    print('not yet hit')
    # Let client 1 listen to invitations in its designated invitation deaddrop
-   while time
    invitation = clients[1].download_invitations(initial_port+4)
    
    print("RECEIVED INVITATION: " + invitation.getPayload())
