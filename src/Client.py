@@ -285,9 +285,14 @@ class Client:
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
-      print(self.__privateKey, self.partnerPublicKey)
+      print('private key', self.__privateKey)
+      print('partner key', self.partnerPublicKey)
+
+      data = m.getPayload()
+      data = data.encode("latin_1")
+
       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      new_payload = TU.decryptMessage(sharedSecret, m.getPayload())
-      m.setPayload(new_payload)
+      data = TU.decryptMessage(sharedSecret, data)
+      m.setPayload(data)
 
       return m
