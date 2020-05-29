@@ -38,6 +38,9 @@ class Client:
       
       # TODO: We get to know this key through the Dialing Protocol
       self.partnerPublicKey = ""
+
+      # Set of clients w/ whom we can initiate a conversation with
+      self.potential_partners_pks = []
       
       # Temporary keys. They are computed for each sent message.
       self.temporaryKeys = []
@@ -68,6 +71,8 @@ class Client:
       # An integer in [0, self.nDDS), index of the dead drop server.
       # It's computed in every round by the client
       self.deadDropServerIndex = 0
+
+      self.invitationDeadDropPort = None
 
    def setupConnection(self):
       # Connect to the next server to give it our listening port
@@ -138,11 +143,13 @@ class Client:
    # message and round an integer. Returns a string
    def preparePayload(self, data):
       self.generateTemporaryKeys()
-      
+
       ppk = self.partnerPublicKey
+
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
       if self.partnerPublicKey == "":
+         print('Fake Partner')
          _, ppk = TU.generateKeys(self.keyGenerator)
          data = TU.createRandomMessage(32)
       
@@ -236,10 +243,94 @@ class Client:
       if self.partnerPublicKey != "": 
          m.setPayload( self.decryptPayload(m.getPayload()) )
       else:
-         m.setpayload("")
+         m.setPayload("")
          
       return m
+   # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
+   def dial(self, recipient_public_key):
+      """
+      Handle Dialing Protocol/ Invitation
+      Dialing Protocol
+      1. How Dialing is Facilitated?
+         1. Dialing Facilitated in Rounds every 10 minutes
+         2. For each dialing round we create N invitation deaddrops
+               Each user is designated an invitation deaddrop via pk
+      2. How to Dial a User
+         1. UserA dials UserB by placing a message into UserB's invitation deaddrop
+            1. Invitation deaddrop assigned at the beginning of the round
+            2. Message Contents = sender's pk, nonce, and MAC encrypted w/ recipient's pk
+         2. All Users periodicallally poll their assigned invitation dead drop to checksfor invitations
+      """
+      # If the initial setup has not gone through,
+      # then just block and wait. We can't send anything
+      # before we know the network is up and working
+      while not self.connectionMade:
+         time.sleep(1)
+      print('Dialing')
+      # Connect to next server
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.connect((self.serverIP, self.serverPort))
+
+      message = Message()
+      message.setPayload("User Invitation")
+
+      # Set the user to receive the invitation
+      self.partnerPublicKey = recipient_public_key
       
+      # Prepare the payload following the conversational protocol
+      message.setPayload(self.preparePayload(message.getPayload()))
+
+      # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
+      message.setNetInfo(3)
+      self.sock.sendall(str(message).encode("utf-8"))
+      self.sock.close()
+
+      return
+   
+   def download_invitations(self, invitationDeadDropPort: str):
+      time.sleep(10)
+      self.invitationDeadDropPort = invitationDeadDropPort
+      dial_message = Message()
+      dial_message.setNetInfo(6)
+      dial_message.setPayload("{}|{}".format(self.localPort, TU.serializePublicKey(self.publicKey)))
+ 
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      while True:
+         try:
+            self.sock.connect(('localhost', self.invitationDeadDropPort))
+            self.sock.sendall(str.encode(str(dial_message)))
+            break
+         except:
+            time.sleep(1)
+
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.bind(('localhost', self.localPort))
+      self.sock.listen(1) # listen for 1 connection
+      conn, server_addr = self.sock.accept()
+      # All messages are fixed to 4K
+      recvStr = conn.recv(32768).decode("utf-8")
+      conn.close()
+      print(recvStr)
+      # Convert response to message
+      m = Message()
+      m.loadFromString(recvStr)
+      
+
+      data = m.getPayload()
+      print(data)
+      data = data.encode('latin_1')
+      print(data)
+      
+      for potential_partner_pk in self.potential_partners_pks:
+         try:
+            sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+            data = TU.decryptMessage(sharedSecret, data)
+            m.setPayload(data)
+         except:
+            print('Invitation not meant for you')
+
+      return m
+
    # Receives a string, adds a new message with the given payload to the
    # queue of messages that will be sent to the Front Server
    def newMessage(self, payload):
@@ -253,27 +344,3 @@ class Client:
       msg.setNetInfo(1)
       
       self.messagesQueue.put(msg)
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      

@@ -167,6 +167,18 @@ class FrontServer:
                                            clientMsg.getPayload())
          clientMsg.setPayload(newPayload)
          self.clientMessages.append(clientMsg)
+
+      elif clientMsg.getNetInfo() == 3: 
+         # Dialing Protocol: Client -> DeadDrop
+
+         _, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=0)
+         clientMsg.setPayload(newPayload)
+         
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect((self.nextServerIP, self.nextServerPort))
+         sock.sendall(str(clientMsg).encode("utf-8"))
+         sock.close()
    
    # A thread running this method will be in charge of the different rounds
    def manageRounds(self):
