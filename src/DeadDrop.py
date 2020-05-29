@@ -168,6 +168,7 @@ class DeadDrop:
                 self.__privateKey, clientMsg.getPayload(), serverType=2)
             clientMsg.setPayload(newPayload)
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print('client port', str(self.invitationClientPort))
             tempSock.connect(('localhost', int(self.invitationClientPort)))
             tempSock.sendall(str(clientMsg).encode("utf-8"))
             tempSock.close()
