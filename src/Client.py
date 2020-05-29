@@ -38,6 +38,9 @@ class Client:
       
       # TODO: We get to know this key through the Dialing Protocol
       self.partnerPublicKey = ""
+
+      # Set of clients w/ whom we can initiate a conversation with
+      self.potential_partners_pks = []
       
       # Set of clients with whom we can initiate a conversation with
       self.potential_partners_pks = []
@@ -73,7 +76,9 @@ class Client:
       # An integer in [0, self.nDDS), index of the dead drop server.
       # It's computed in every round by the client
       self.deadDropServerIndex = 0
-      
+
+      self.invitationDeadDropPort = None
+
    def setupConnection(self):
       # Connect to the next server to give it our listening port
       # and public key. The server will also be able to tell our ip
@@ -146,8 +151,9 @@ class Client:
    # message and round an integer. Returns a string
    def preparePayload(self, data):
       self.generateTemporaryKeys()
-      
+
       ppk = self.partnerPublicKey
+
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
       if self.partnerPublicKey == "":
@@ -257,12 +263,7 @@ class Client:
          m.setPayload("")
          
       return m
-   
-   # Receives a string, adds it to the queue of messages that will be sent
-   # to the Front Server
-   def newMessage(self, payload):
-      self.messagesQueue.put(payload)
-   
+
    # Note: Skyler Implementation Inspired by Jose's Conversation Protocol
    def dial(self, recipient_public_key):
       """
@@ -297,7 +298,8 @@ class Client:
       # Prepare the payload following the conversational protocol
       message.setPayload(self.preparePayload(message.getPayload()))
 
-      # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
+      # Send our message to the deaddrop
+      # 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
       self.sock.sendall(str(message).encode("utf-8"))
       self.sock.close()
@@ -347,3 +349,8 @@ class Client:
             print('Invitation not meant for you')
 
       return m
+   
+   # Receives a string, adds a new message with the given payload to the
+   # queue of messages that will be sent to the Front Server
+   def newMessage(self, payload):
+      self.messagesQueue.put(payload)

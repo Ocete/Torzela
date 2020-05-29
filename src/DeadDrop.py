@@ -6,8 +6,9 @@ import time
 from message import Message
 import TorzelaUtils as TU
 
+
 class DeadDrop:
-   # Set local port to listen on
+    # Set local port to listen on
    def __init__(self, localPort):
       self.localPort = localPort
 
@@ -23,26 +24,25 @@ class DeadDrop:
       self.clientLocalKeys = []
       self.clientMessages = []
 
-      # Dictionary to store all client keys, used for message matching later
-      self.clientKeys = {}
-      
       # The server keys
-      self.__privateKey, self.publicKey = TU.generateKeys( 
-            TU.createKeyGenerator() )
+      self.__privateKey, self.publicKey = TU.generateKeys(
+         TU.createKeyGenerator())
+
+      self.invitations = []
 
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
       
    def getPublicKey(self):
       return TU.serializePublicKey(self.publicKey)
-   
+
    # This is where all messages are handled
    def listen(self):
-      # Listen for incoming connections 
+      # Listen for incoming connections
       listenSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       listenSock.bind(('localhost', self.localPort))
       listenSock.listen(10)
-   
+
       while True:
          print("Dead Drop awaiting connections")
          conn, client_addr = listenSock.accept()
@@ -50,8 +50,9 @@ class DeadDrop:
          print("Dead Drop accepted connection from " + str(client_addr))
 
          # Spawn a thread to handle the connection
-         threading.Thread(target=self.handleMsg, args=(conn, client_addr)).start()
-   
+         threading.Thread(target=self.handleMsg,
+                           args=(conn, client_addr)).start()
+
    # This runs in a thread and handles connections from other servers
    def handleMsg(self, conn, client_addr):
       # Receive data from previous server
@@ -68,25 +69,25 @@ class DeadDrop:
          # Add previous server's IP and port to our list of clients
          serverEntry = (client_addr[0], clientMsg.getPayload())
          if serverEntry not in self.previousServers:
-            self.previousServers.append(serverEntry)
+               self.previousServers.append(serverEntry)
 
       # Check if the packet is for sending a message
-      elif clientMsg.getNetInfo() == 1: 
+      elif clientMsg.getNetInfo() == 1:
          # Forward packet back. Whoever handles the dead drops
          # will be working here mainly. Right now this just
          # sends the packet back to all connected clients
 
          # First, close the connection. This may seem
          # weird, but at this point we already have the message
-         # and are going to send the message back to all of the 
+         # and are going to send the message back to all of the
          # connected servers anyways
          conn.close()
-         
+
          # Onion routing stuff
          clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
               self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
-         
+
          # self.clientLocalKey -> the key used to encrypt the RESPONSE
          # clientChain -> the SpreadingServer where the RESPONSE should be sent
          # deadDrop -> the deadDrop this message is accessing
@@ -109,6 +110,34 @@ class DeadDrop:
          self.nMessages = int(clientMsg.getPayload())
          self.clientMessages = []
          self.clientLocalKeys = []
+      
+      elif clientMsg.getNetInfo() == 3:
+         print('Dialing Protocol REACHED DEADDROP')
+         conn.close()
+         # Decrypt Dead Drop Layer
+         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
+            self.__privateKey, clientMsg.getPayload(), serverType=2)
+         clientMsg.setPayload(newPayload)
+         
+         # Add message to list of invitations
+         self.invitations.append(clientMsg)
+         return
+
+      elif clientMsg.getNetInfo() == 6:
+         print('Ping Download')
+         if not self.invitations:
+            return
+
+         clientPort, clientPublicKey = clientMsg.getPayload().split("|")
+         clientPublicKey = TU.deserializePublicKey(clientPublicKey)
+
+         for invitation in self.invitations:
+            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tempSock.connect(('localhost', int(clientPort)))
+            tempSock.sendall(str(invitation).encode("utf-8"))
+            tempSock.close()
+
+         return
          
    # This method matches the messages accessing equal dead drops and
    # sends the responses back to the spreading servers

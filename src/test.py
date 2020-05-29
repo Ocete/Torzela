@@ -6,6 +6,7 @@ from MiddleServer import MiddleServer
 from SpreadingServer import SpreadingServer
 from DeadDrop import DeadDrop
 import TorzelaUtils as TU
+import threading
 import time
 
 def testNetwork():
@@ -18,7 +19,11 @@ def testNetwork():
    
    # We can do any kind of test we want in here...
    
+<<<<<<< HEAD
    initial_port = 7610
+=======
+   initial_port = 7734
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58
    
    c = Client('localhost', initial_port+1, initial_port)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
@@ -43,10 +48,14 @@ def testNetwork():
    # When the next round starts, the Front Server will notify the client,
    # who will send the message "Hello Torzela". Right now, the message will go
    # through the network until it reaches the Dead Drop Server, then
-   # it will just be sent back, so we should get "Hello Torzela!" from
-   # the client
+   # it will just be sent back, so we should get "Hello Torzela!" here
    time.sleep(50000)
+<<<<<<< HEAD
    
+=======
+
+
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58
 def testDialingProtocol():
    # This is the setup we have below with the port number that
    # each host listens on. Note that we specify both the port that
@@ -54,17 +63,29 @@ def testDialingProtocol():
    #
    # Client    ->  FrontServer -> MiddleServer -> SpreadingServer -> DeadDrop
    # port 7776     port 7777      port 7778       port 7779          port 7780
+<<<<<<< HEAD
 
    # We can do any kind of test we want in here...
 
    initial_port = 7734
    clients = [Client('localhost', initial_port+1, initial_port-1), 
               Client('localhost', initial_port+1, initial_port)]
+=======
+   
+   # We can do any kind of test we want in here...
+   
+   initial_port = 7734
+   clients = [Client('localhost', initial_port+1, initial_port-1), Client('localhost', initial_port+1, initial_port)]
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58
    front = FrontServer('localhost', initial_port+2, initial_port+1)
    middle = MiddleServer('localhost', initial_port+3, initial_port+2)
    spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
    dead = DeadDrop(initial_port+4)
+<<<<<<< HEAD
 
+=======
+   
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58
    # Set the keys in the client
    ppk_frontServer = front.getPublicKey()
    ppk_middleServer = middle.getPublicKey()
@@ -74,17 +95,34 @@ def testDialingProtocol():
    for client in clients:
       client.chainServersPublicKeys = [ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
       client.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+<<<<<<< HEAD
 
       # potential partners = set of all other available clients to speak to
       # not the same as partner client, the client w/ whom you are currently speaking with
       client.potential_partner_pks = [client.publicKey for client in clients]
 
+=======
+      
+      # potential partners = set of all other available clients to speak to
+      # not the same as partner client, the client w/ whom you are currently speaking with
+      client.potential_partner_pks = [client.publicKey for client in clients]
+  
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58
    # Let client 0 dial client 1 (1st arg = partner w/ whom to contact w/)
    clients[0].dial(clients[1].publicKey)
    # Let client 1 listen to invitations in its designated invitation deaddrop
    invitation = clients[1].download_invitations(initial_port+4)
+<<<<<<< HEAD
 
    print("RECEIVED INVITATION: " + invitation.getPayload())
 
 if __name__ == "__main__":
    testDialingProtocol()
+=======
+   
+   print("RECEIVED INVITATION: " + invitation.getPayload())
+
+
+if __name__ == "__main__":
+   testDialingProtocol()
+>>>>>>> 8432f5b42c2a56cb30c590c31e8dac5ee2da2b58

@@ -149,7 +149,22 @@ class SpreadingServer:
          
          if self.nMessages == len(self.clientMessages):
             self.forwardResponses()
+      elif clientMsg.getNetInfo() == 3: 
+         # Dialing Protocol: Client -> DeadDrop         
+         # Onion routing stuff
+         deadDropServer, self.clientLocalKey, newPayload = TU.decryptOnionLayer(
+               self.__privateKey, clientMsg.getPayload(), serverType=1)
+         clientMsg.setPayload(newPayload)
          
+         # TODO (matthew): deadDropServer contains towards which server
+         # the message has to be sent :D
+         
+         for ddrop in self.nextServers:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect(ddrop)
+            self.sock.sendall(str(clientMsg).encode("utf-8"))
+            self.sock.close()
+
       elif clientMsg.getNetInfo() == 4: 
          # In here, we handle the first message sent by the previous server.
          # It notifies us of a new round and how many messages are coming
@@ -215,4 +230,4 @@ class SpreadingServer:
          tempSock.connect((self.previousServerIP, self.previousServerPort))
          tempSock.sendall(str(msg).encode("utf-8"))
          tempSock.close()
-         
+      
