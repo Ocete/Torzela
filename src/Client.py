@@ -283,8 +283,8 @@ class Client:
       m = Message()
       m.loadFromString(recvStr)
       
-      # Undo onion routing to the payload
-      if self.partnerPublicKey != "": 
-         m.setPayload( self.decryptPayload(m.getPayload()))
-      
+      sharedSecret = TU.computeSharedSecret(self.__privateKey, 
+                                            self.partnerPublicKey)
+      m.setPayload(TU.decryptMessage(sharedSecret, data))
+
       return m
