@@ -125,7 +125,7 @@ class DeadDrop:
 
          
          sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
-         newPayload = TU.decryptMessage(sharedSecret, clientMsg.getPayload())
+         newPayload = TU.decryptMessage(sharedSecret, clientMsg.getPayload().decode("utf-8"))
          print('hello')
          print('new_payload', newPayload)
          quit()
