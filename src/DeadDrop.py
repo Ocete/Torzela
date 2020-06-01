@@ -125,14 +125,14 @@ class DeadDrop:
          print(newPayload)
 
          sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
-         print('encode utf')
-         print(newPayload.encode('utf-8'))
+         # print('encode utf')
+         # print(newPayload.encode('utf-8'))
          # print('decode utf')
          # print(newPayload.decode('utf-8'))
          # print('encode latin_1')
          # print(newPayload.encode('latin_1'))
-         # print('decode latin_1')
-         # print(newPayload.decode('latin_1'))
+         print('decode latin_1')
+         print(newPayload.decode('latin_1'))
 
          newPayload = TU.decryptMessage(sharedSecret, newPayload)
          print('decrypted newPay', newPayload)
