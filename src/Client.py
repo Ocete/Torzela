@@ -160,7 +160,7 @@ class Client:
 
       print('encrypted message pk')
       print(data)
-      
+      print('dsf')
       # Compute the message for the Dead Drop Server. It includes how to 
       # send it back (the chain) and the dead drop.
       # It has the following form: 
