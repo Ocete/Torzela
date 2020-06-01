@@ -120,18 +120,18 @@ class DeadDrop:
          # Decrypt Dead Drop Layer
          self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
             self.__privateKey, clientMsg.getPayload(), serverType=2)
-         clientMsg.setPayload(newPayload)
 
+         print('encrypted newPayload')
+         print(newPayload)
 
-         
          sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
-         newPayload = TU.decryptMessage(sharedSecret, clientMsg.getPayload().decode("utf-8"))
-         print('hello')
-         print('new_payload', newPayload)
+         newPayload.decode('utf-8')
+         newPayload = TU.decryptMessage(sharedSecret, newPayload)
+         print('decrypted newPay', newPayload)
          quit()
 
          # Add message to list of invitations
-         self.invitations.append(clientMsg)
+         self.invitations.append(newPayload)
          return
 
       elif clientMsg.getNetInfo() == 6:

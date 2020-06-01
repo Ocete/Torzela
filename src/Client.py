@@ -276,7 +276,7 @@ class Client:
 
       # Set the user to receive the invitation
       self.partnerPublicKey = recipient_public_key
-      
+      '''
       print('original')
       print('Gang Gang')
 
@@ -291,6 +291,9 @@ class Client:
       data = TU.decryptMessage(sharedSecret, data)
       print('decrypted')
       print(data)
+      '''
+
+      message.setPayload( self.preparePayload(message.getPayload()))
 
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
