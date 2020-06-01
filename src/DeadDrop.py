@@ -126,12 +126,12 @@ class DeadDrop:
          
          sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
          newPayload = TU.decryptMessage(sharedSecret, newPayload)
-
+         print('hello')
          print('new_payload', newPayload)
+         quit()
 
          # Add message to list of invitations
          self.invitations.append(clientMsg)
-         sys.exit()
          return
 
       elif clientMsg.getNetInfo() == 6:
