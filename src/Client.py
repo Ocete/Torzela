@@ -283,7 +283,7 @@ class Client:
       # Prepare the payload following the conversational protocol
       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
-      data = TU.encryptMessage(sharedSecret, message.getPayload())
+      data = TU.encryptMessage(sharedSecret, message.getPayload()).encode("latin_1")
       print('encrypted message')  
       print(data)
       data = TU.decryptMessage(sharedSecret, data)
