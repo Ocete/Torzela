@@ -157,6 +157,9 @@ class Client:
       sharedSecret = TU.computeSharedSecret(self.__privateKey, ppk)
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
+
+      print('encrypted message pk')
+      print(data)
       
       # Compute the message for the Dead Drop Server. It includes how to 
       # send it back (the chain) and the dead drop.
@@ -276,6 +279,7 @@ class Client:
 
       # Set the user to receive the invitation
       self.partnerPublicKey = recipient_public_key
+      '''
       print('original')
       print('Gang Gang')
 
@@ -290,9 +294,7 @@ class Client:
       data = TU.decryptMessage(sharedSecret, data)
       print('decrypted')
       print(data)
-
-      message.setPayload("User Invitation")
-
+      '''
 
       message.setPayload( self.preparePayload(message.getPayload()))
 
