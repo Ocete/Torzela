@@ -341,7 +341,7 @@ class Client:
       print(data)
 
       m = Message()
-      for potential_partner_pk in potential_partners_pks:
+      for potential_partner_pk in potential_partner_pks:
          print('dawg')
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
