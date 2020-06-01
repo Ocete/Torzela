@@ -5,6 +5,8 @@ import threading
 import time
 from message import Message
 import TorzelaUtils as TU
+import sys
+
 
 
 class DeadDrop:
@@ -112,19 +114,16 @@ class DeadDrop:
          self.clientLocalKeys = []
       
       elif clientMsg.getNetInfo() == 3:
-         print('Dialing Protocol REACHED DEADDROP')
          conn.close()
          # Decrypt Dead Drop Layer
-         self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
+         self.clientLocalKey, clientChain, deadDrop, invitation = TU.decryptOnionLayer(
             self.__privateKey, clientMsg.getPayload(), serverType=2)
-         clientMsg.setPayload(newPayload)
-         
+
          # Add message to list of invitations
-         self.invitations.append(clientMsg)
+         self.invitations.append(invitation)
          return
 
       elif clientMsg.getNetInfo() == 6:
-         print('Ping Download')
          if not self.invitations:
             return
 
@@ -134,9 +133,9 @@ class DeadDrop:
          for invitation in self.invitations:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tempSock.connect(('localhost', int(clientPort)))
-            tempSock.sendall(str(invitation).encode("utf-8"))
+            data = str(invitation).encode("utf-8")
+            tempSock.sendall(data)
             tempSock.close()
-
          return
          
    # This method matches the messages accessing equal dead drops and
