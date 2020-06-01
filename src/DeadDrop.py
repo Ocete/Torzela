@@ -131,11 +131,12 @@ class DeadDrop:
          # print(newPayload.decode('utf-8'))
          # print('encode latin_1')
          # print(newPayload.encode('latin_1'))
-         print('decode latin_1')
-         print(newPayload.decode('latin_1'))
+         # print('decode latin_1')
+         # print(newPayload.decode('latin_1'))
 
          newPayload = TU.decryptMessage(sharedSecret, newPayload)
-         print('decrypted newPay', newPayload)
+         print('decrypted newPay')
+         print(newPayload)
          quit()
 
          # Add message to list of invitations
