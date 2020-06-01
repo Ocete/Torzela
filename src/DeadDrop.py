@@ -136,7 +136,10 @@ class DeadDrop:
          for invitation in self.invitations:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tempSock.connect(('localhost', int(clientPort)))
-            tempSock.sendall(str(invitation).encode("utf-8"))
+            data = str(invitation).encode("utf-8")
+            print('kanye')
+            print(data)
+            tempSock.sendall(data)
             tempSock.close()
 
          return
