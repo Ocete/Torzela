@@ -277,13 +277,15 @@ class Client:
       # Set the user to receive the invitation
       self.partnerPublicKey = recipient_public_key
       
-      print('here', message.getPayload())
+      print('here')
+      print(message.getPayload())
 
       # Prepare the payload following the conversational protocol
       message.setPayload(self.preparePayload(message.getPayload()))
 
       message.setPayload( self.decryptPayload(message.getPayload()) )
-      print('here1', message.getPayload())
+      print('here1')
+      print(message.getPayload())
       
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
