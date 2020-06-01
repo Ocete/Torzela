@@ -286,7 +286,7 @@ class Client:
       data = TU.encryptMessage(sharedSecret, message.getPayload())
       print('encrypted message')  
       print(data)
-      data = TU.decryptMessage(shared_secret, data)
+      data = TU.decryptMessage(sharedSecret, data)
       print('decrypted')
       print(data)
 
