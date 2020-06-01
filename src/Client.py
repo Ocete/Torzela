@@ -282,10 +282,8 @@ class Client:
 
       # Prepare the payload following the conversational protocol
       message.setPayload(self.preparePayload(message.getPayload()))
-
-      message.setPayload( self.decryptPayload(message.getPayload()) )
       print('here1')
-      print(message.getPayload())
+      print(self.decryptPayload(message.getPayload()) )
       
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
