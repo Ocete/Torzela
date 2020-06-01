@@ -347,10 +347,12 @@ class Client:
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
             data = TU.decryptMessage(sharedSecret, data)
+            print('gang')
+            print(data)
             m.setPayload(data)
          except:
             print('Invitation not meant for you')
-
+      
       return m
 
    # Receives a string, adds a new message with the given payload to the
