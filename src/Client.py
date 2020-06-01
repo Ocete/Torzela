@@ -334,6 +334,8 @@ class Client:
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
       recvStr = conn.recv(32768).decode("utf-8")
+      print('decoded message')
+      print(recvStr)
       conn.close()
       # Convert response to message
       m = Message()
