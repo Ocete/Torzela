@@ -88,4 +88,4 @@ def testDialingProtocol():
 
 
 if __name__ == "__main__":
-   testNetwork()
+   testDialingProtocol()
