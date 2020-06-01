@@ -5,6 +5,7 @@ import threading
 import time
 from message import Message
 import TorzelaUtils as TU
+import sys
 
 
 class DeadDrop:
@@ -121,14 +122,16 @@ class DeadDrop:
             self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
 
-         print('new_payload', newPayload)
 
          
          sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
-         data = TU.decryptMessage(sharedSecret, data)
-         print(data)
+         newPayload = TU.decryptMessage(sharedSecret, newPayload)
+
+         print('new_payload', newPayload)
+
          # Add message to list of invitations
          self.invitations.append(clientMsg)
+         sys.exit()
          return
 
       elif clientMsg.getNetInfo() == 6:
