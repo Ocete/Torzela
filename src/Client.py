@@ -333,25 +333,23 @@ class Client:
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
-      recvStr = conn.recv(32768).decode("utf-8")
+      data = conn.recv(32768).decode("utf-8")
       print('decoded message')
-      print(recvStr)
-      conn.close()
-      # Convert response to message
-      m = Message()
-      m.loadFromString(recvStr)
-      
-      data = m.getPayload()
-      print('Payload')
       print(data)
-      
-      # for potential_partner_pk in self.potential_partners_pks:
-      #    try:
-      #       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      #       data = TU.decryptMessage(sharedSecret, data)
-      #       m.setPayload(data)
-      #    except:
-      #       print('Invitation not meant for you')
+
+      data = data.encode('latin_1')
+      print('encoded latin 1')
+      print(data)
+
+      m = Message()
+
+      for potential_partner_pk in self.potential_partners_pks:
+         try:
+            sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+            data = TU.decryptMessage(sharedSecret, data)
+            m.setPayload(data)
+         except:
+            print('Invitation not meant for you')
 
       return m
 
