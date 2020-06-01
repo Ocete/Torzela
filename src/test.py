@@ -71,7 +71,9 @@ def testDialingProtocol():
 
    for client in clients:
       # potential partners = set of all other available clients to speak to
-      client.potential_partner_pks = [client.publicKey for client in clients]
+      client.potential_partner_pks = [c.publicKey for c in clients]
+      print('# of keys')
+      print(len(client.potential_partners_pks))
       client.chainServersPublicKeys = [ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
       client.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
    
