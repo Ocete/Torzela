@@ -118,22 +118,11 @@ class DeadDrop:
          print('Dialing Protocol REACHED DEADDROP')
          conn.close()
          # Decrypt Dead Drop Layer
-         self.clientLocalKey, clientChain, deadDrop, data = TU.decryptOnionLayer(
+         self.clientLocalKey, clientChain, deadDrop, invitation = TU.decryptOnionLayer(
             self.__privateKey, clientMsg.getPayload(), serverType=2)
 
-         print('encrypted newPayload')
-         print(data)
-
-         sharedSecret = TU.computeSharedSecret(self.client_private_public[1], self.client_private_public[0])
-
-         data = data.encode('latin_1')
-         data = TU.decryptMessage(sharedSecret, data)
-         print('decrypted newPay')
-         print(data)
-         quit()
-
          # Add message to list of invitations
-         self.invitations.append(data)
+         self.invitations.append(invitation)
          return
 
       elif clientMsg.getNetInfo() == 6:
