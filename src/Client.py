@@ -344,7 +344,7 @@ class Client:
       for potential_partner_pk in potential_partner_pks:
          print('dawg')
          try:
-            sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+            sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
             print('gang')
             print(data)
