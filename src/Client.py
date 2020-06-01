@@ -277,14 +277,19 @@ class Client:
       # Set the user to receive the invitation
       self.partnerPublicKey = recipient_public_key
       
-      print('here')
+      print('original')
       print(message.getPayload())
 
       # Prepare the payload following the conversational protocol
-      message.setPayload(self.preparePayload(message.getPayload()))
-      print('here1')
-      print(self.decryptPayload(message.getPayload()))
-      
+      sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
+      deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
+      data = TU.encryptMessage(sharedSecret, message.getPayload())
+      print('encrypted message')  
+      print(data)
+      data = TU.decryptMessage(shared_secret, data)
+      print('decrypted')
+      print(data)
+
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
