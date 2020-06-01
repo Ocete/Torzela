@@ -155,6 +155,7 @@ class Client:
       
       # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.__privateKey, ppk)
+      print('SHARED SECRET_GANG', sharedSecret)
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
       
