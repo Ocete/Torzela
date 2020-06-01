@@ -158,7 +158,7 @@ class Client:
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
 
-      print('encrypted message pk')
+      print('prepare payload first encrypt')
       print(data)
       print('dsf')
       # Compute the message for the Dead Drop Server. It includes how to 
@@ -284,7 +284,7 @@ class Client:
 
       # Prepare the payload following the conversational protocol
       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      data = TU.encryptMessage(sharedSecret, 'Gang Gang')
+      data = TU.encryptMessage(sharedSecret, message.getPayload())
       print('encrypted message in bytes')
       print(data)
       print('decoded latin')
@@ -296,8 +296,13 @@ class Client:
       data = TU.decryptMessage(sharedSecret, data)
       print('decrypted')
       print(data)
+      
 
-      # message.setPayload( self.preparePayload(message.getPayload()))
+      print('START DIAL')
+      print('Message:')
+      print(message.getPayload())
+      data = self.preparePayload(message.getPayload())
+      message.setPayload(data)
 
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
