@@ -342,3 +342,7 @@ class Client:
       msg.setNetInfo(1)
       
       self.messagesQueue.put(msg)
+
+
+   def get_private():
+      return self.__privateKey
