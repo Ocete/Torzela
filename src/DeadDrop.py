@@ -30,6 +30,8 @@ class DeadDrop:
 
       self.invitations = []
 
+      self.client_private_public = None
+
       # Setup main listening socket to accept incoming connections
       threading.Thread(target=self.listen, args=()).start()
       
@@ -118,13 +120,16 @@ class DeadDrop:
          self.clientLocalKey, clientChain, deadDrop, newPayload = TU.decryptOnionLayer(
             self.__privateKey, clientMsg.getPayload(), serverType=2)
          clientMsg.setPayload(newPayload)
+
+         print('new_payload', newPayload)
+
          
          # Add message to list of invitations
          self.invitations.append(clientMsg)
          return
 
       elif clientMsg.getNetInfo() == 6:
-         print('Ping Download')
+         print('Download Invitations')
          if not self.invitations:
             return
 
