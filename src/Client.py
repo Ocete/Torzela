@@ -317,8 +317,8 @@ class Client:
             data = TU.decryptMessage(sharedSecret, data)
             m.setPayload(data)
          except:
-            print('Invitation not meant for you')
-      
+            pass
+
       return m
 
    # Receives a string, adds a new message with the given payload to the
