@@ -40,7 +40,6 @@ class Client:
       self.partnerPublicKey = ""
 
       # Set of clients w/ whom we can initiate a conversation with
-      self.potential_partners_pks = []
       
       # Temporary keys. They are computed for each sent message.
       self.temporaryKeys = []
@@ -312,7 +311,7 @@ class Client:
 
       return
    
-   def download_invitations(self, invitationDeadDropPort):
+   def download_invitations(self, invitationDeadDropPort, potential_partner_pks):
       time.sleep(10)
       self.invitationDeadDropPort = invitationDeadDropPort
       dial_message = Message()
@@ -342,9 +341,7 @@ class Client:
       print(data)
 
       m = Message()
-      print('# of partners')
-      print(len(self.potential_partners_pks))
-      for potential_partner_pk in self.potential_partners_pks:
+      for potential_partner_pk in potential_partners_pks:
          print('dawg')
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
