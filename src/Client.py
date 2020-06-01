@@ -40,7 +40,6 @@ class Client:
       self.partnerPublicKey = ""
 
       # Set of clients w/ whom we can initiate a conversation with
-      self.potential_partners_pks = []
       
       # Temporary keys. They are computed for each sent message.
       self.temporaryKeys = []

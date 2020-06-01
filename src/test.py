@@ -71,7 +71,6 @@ def testDialingProtocol():
 
    client_keys = [c.publicKey for c in clients]
    print(client_keys)
-   exit()
    for client in clients:
       # potential partners = set of all other available clients to speak to
       client.potential_partner_pks = client_keys
