@@ -342,7 +342,8 @@ class Client:
       print(data)
 
       m = Message()
-      print(self.potential_partners_pks)
+      print('# of partners')
+      print(len(self.potential_partners_pks))
       for potential_partner_pk in self.potential_partners_pks:
          print('dawg')
          try:
