@@ -84,7 +84,7 @@ def testDialingProtocol():
    # Let client 1 listen to invitations in its designated invitation deaddrop
    #invitation = clients[1].download_invitations(initial_port+4)
    
-   print("RECEIVED INVITATION: " + invitation.getPayload())
+   # print("RECEIVED INVITATION: " + invitation.getPayload())
 
 
 if __name__ == "__main__":
