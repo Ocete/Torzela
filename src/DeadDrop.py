@@ -115,7 +115,6 @@ class DeadDrop:
          self.clientLocalKeys = []
       
       elif clientMsg.getNetInfo() == 3:
-         print('Dialing Protocol REACHED DEADDROP')
          conn.close()
          # Decrypt Dead Drop Layer
          self.clientLocalKey, clientChain, deadDrop, invitation = TU.decryptOnionLayer(
@@ -126,7 +125,6 @@ class DeadDrop:
          return
 
       elif clientMsg.getNetInfo() == 6:
-         print('Download Invitations')
          if not self.invitations:
             return
 
@@ -137,11 +135,8 @@ class DeadDrop:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tempSock.connect(('localhost', int(clientPort)))
             data = str(invitation).encode("utf-8")
-            print('kanye')
-            print(data)
             tempSock.sendall(data)
             tempSock.close()
-
          return
          
    # This method matches the messages accessing equal dead drops and

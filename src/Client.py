@@ -157,9 +157,6 @@ class Client:
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
       data = TU.encryptMessage(sharedSecret, data)
 
-      print('prepare payload first encrypt')
-      print(data)
-      print('dsf')
       # Compute the message for the Dead Drop Server. It includes how to 
       # send it back (the chain) and the dead drop.
       # It has the following form: 
@@ -278,31 +275,8 @@ class Client:
 
       # Set the user to receive the invitation
       self.partnerPublicKey = recipient_public_key
-      print('original')
-      print('Gang Gang')
-
-      # Prepare the payload following the conversational protocol
-      sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      data = TU.encryptMessage(sharedSecret, message.getPayload())
-      print('encrypted message in bytes')
-      print(data)
-      print('decoded latin')
-      data = data.decode("latin_1")
-      print(data)
-      print('encoded latin')
-      data = data.encode("latin_1")
-      print(data)
-      data = TU.decryptMessage(sharedSecret, data)
-      print('decrypted')
-      print(data)
-      
-
-      print('START DIAL')
-      print('Message:')
-      print(message.getPayload())
       data = self.preparePayload(message.getPayload())
       message.setPayload(data)
-
 
       # Send our message to the deaddrop; 3 Indicates we are initiating a conversation via dialing protocol
       message.setNetInfo(3)
@@ -333,21 +307,14 @@ class Client:
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
       data = conn.recv(32768).decode("utf-8")
-      print('decoded message')
-      print(data)
 
       data = data.encode('latin_1')
-      print('encoded latin 1')
-      print(data)
 
       m = Message()
       for potential_partner_pk in potential_partner_pks:
-         print('dawg')
          try:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
-            print('gang')
-            print(data)
             m.setPayload(data)
          except:
             print('Invitation not meant for you')
