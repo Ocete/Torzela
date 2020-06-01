@@ -278,16 +278,16 @@ class Client:
       self.partnerPublicKey = recipient_public_key
       
       print('original')
-      print(message.getPayload())
+      print('Gang Gang')
 
       # Prepare the payload following the conversational protocol
       sharedSecret = TU.computeSharedSecret(self.__privateKey, self.partnerPublicKey)
-      deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
-      data = TU.encryptMessage(sharedSecret, message.getPayload())
-      print('encrypted message')
+      data = TU.encryptMessage(sharedSecret, 'Gang Gang')
+      print('encrypted message in bytes')
       print(data)
-      print('encode')
-      print(data.encode('utf-8'))
+      print('encrypted message decoded to str')
+      data.decode("latin_1")
+      print(data)
       data = TU.decryptMessage(sharedSecret, data)
       print('decrypted')
       print(data)
