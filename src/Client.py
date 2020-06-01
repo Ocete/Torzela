@@ -344,5 +344,5 @@ class Client:
       self.messagesQueue.put(msg)
 
 
-   def get_private():
+   def get_private(self):
       return self.__privateKey
