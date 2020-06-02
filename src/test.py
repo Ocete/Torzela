@@ -106,7 +106,7 @@ class Torzela:
       
       self.dead = DeadDrop(port+3)
 
-      self.front.append(self.dead.getPublicKey())
+      self.front.chainServersPublicKeys.append(self.dead.getPublicKey())
       return
 
 
