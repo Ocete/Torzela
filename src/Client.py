@@ -337,7 +337,7 @@ class Client:
             time.sleep(1)
 
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('', self.localPort))
+      self.sock.connect(('', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
