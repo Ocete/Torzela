@@ -119,7 +119,8 @@ class FrontServer:
       clientMsg.loadFromString(clientData)
       clientIP = client_addr[0]
 
-      print("FrontServer got " + clientData)
+      if clientMsg.getNetInfo() != 1 and clientMsg.getNetInfo() != 2:
+         print("FrontServer got " + clientData)
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -134,6 +135,7 @@ class FrontServer:
             self.clientList.append(clientEntry)
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
+         print("Front Server received message from client")
          # Process packets coming from a client and headed towards
          # a dead drop only if the current round is active and the client 
          # hasn't already send a msessage
@@ -154,6 +156,7 @@ class FrontServer:
             self.clientMessages.append(clientMsg)
          
       elif clientMsg.getNetInfo() == 2:
+         print("FrontServer received message from Middle server")
          # TODO -> add a lock here, same as with netinfo == 1
          
          # Encrypt one layer of the onion message
@@ -279,11 +282,7 @@ class FrontServer:
          matches = [ (ip, port) for ((ip, port), pk) in self.clientList 
                      if clientPK == pk]
          if len(matches) == 0:
-            print("Front server error: couldn't find client where to send the response")
-            
-            print("Lost key: {}".format([clientPK]))
-            print(self.clientList)
-            
+            print("Front server error: couldn't find client where to send the response")            
             continue
          elif len(matches) > 1:
             print("Front server error: too many clients where to send the response")
@@ -291,7 +290,6 @@ class FrontServer:
          clientIP, clientPort = matches[0]
          clientPort = int(clientPort)
          
-         print("Trying to send message to {}##{}".format(clientIP, clientPort))
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((clientIP, clientPort))
          tempSock.sendall(str(msg).encode("utf-8"))

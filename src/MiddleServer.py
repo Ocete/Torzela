@@ -91,7 +91,8 @@ class MiddleServer:
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
       
-      print("Middle server got " + clientData)
+      if clientMsg.getNetInfo() != 1 and clientMsg.getNetInfo() != 2:
+         print("Middle Server got " + clientData)
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -100,6 +101,7 @@ class MiddleServer:
          self.previousServerPort = int(clientMsg.getPayload())
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
+         print("Middle Server received message from Front server")
          # In here, we handle packets being sent towards
          # the dead drop. There is only one way to send packets
          
@@ -121,6 +123,7 @@ class MiddleServer:
             self.forwardMessages()
          
       elif clientMsg.getNetInfo() == 2: 
+         print("Middle Server received message from Spreading server")
          # In here, we are handling messages send back
          # to the client. There is only one way to send packets
          

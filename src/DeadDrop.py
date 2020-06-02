@@ -71,7 +71,9 @@ class DeadDrop:
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
 
-      print("Dead Drop got " + clientData)
+      if clientMsg.getNetInfo() != 1:
+         print("Dead Drop Server got " + clientData)
+
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -82,6 +84,7 @@ class DeadDrop:
 
       # Check if the packet is for sending a message
       elif clientMsg.getNetInfo() == 1:
+         print("Dead Drop Server got a message from Spreading Server")
          # In here, packets were trying to reach this server
 
          # First, close the connection. This may seem

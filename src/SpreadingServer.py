@@ -100,7 +100,8 @@ class SpreadingServer:
       clientMsg = Message()
       clientMsg.loadFromString(clientData)
 
-      print("Spreading Server got " + clientData)
+      if clientMsg.getNetInfo() != 1 and clientMsg.getNetInfo() != 2:
+         print("Spreading Server got " + clientData)
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
@@ -109,6 +110,7 @@ class SpreadingServer:
          self.previousServerPort = int(clientMsg.getPayload())
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
+         print("Spreading Server received message from Middle server")
          # In here, we handle messages going from a client towards a dead drop
          # Send message to all dead drops
          
@@ -133,6 +135,7 @@ class SpreadingServer:
             self.forwardMessages()
             
       elif clientMsg.getNetInfo() == 2: 
+         print("Spreading Server received message from Dead Drop server")
          # Here we handle messages coming from a dead drop back
          # towards a client. Just forward back to server
          

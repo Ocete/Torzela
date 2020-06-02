@@ -19,10 +19,10 @@ def testNetwork():
    # port 7775
    # We can do any kind of test we want in here...
    
-   initial_port = 7630
+   initial_port = 7640
    
-   c = Client('localhost', initial_port+1, initial_port)
-   c_partner = Client('localhost', initial_port+1, initial_port-1)
+   c = Client('localhost', initial_port+1, initial_port, clientId=1)
+   c_partner = Client('localhost', initial_port+1, initial_port-1, clientId=2)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
    middle = MiddleServer('localhost', initial_port+3, initial_port+2)
    spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
@@ -40,7 +40,7 @@ def testNetwork():
    # Configure your partner
    c_partner.partnerPublicKey = c.publicKey
    c_partner.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-   c_partner.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+   c_partner.deadDropServersPublicKeys = [ ppk_deadDropServer ]
 
    # Prepare the message
    c.newMessage("Hello Torzela!")   
@@ -65,8 +65,9 @@ def testDialingProtocol():
    
    # We can do any kind of test we want in here...
    
-   initial_port = 7750
-   clients = [Client('localhost', initial_port+1, initial_port-1), Client('localhost', initial_port+1, initial_port)]
+   initial_port = 7780
+   clients = [Client('localhost', initial_port+1, initial_port-1, clientId=1),
+              Client('localhost', initial_port+1, initial_port, clientId=2)]
    front = FrontServer('localhost', initial_port+2, initial_port+1)
    middle = MiddleServer('localhost', initial_port+3, initial_port+2)
    spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
