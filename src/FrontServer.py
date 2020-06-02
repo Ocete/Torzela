@@ -127,6 +127,7 @@ class FrontServer:
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
+         conn.close()
          # Add client's public key to our list of clients
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
          
@@ -142,11 +143,11 @@ class FrontServer:
          data = pickle.dumps(serialized_pks)
 
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect(('localhost', int(clientPort)))
+         print(clientPort)
+         sock.connect(('', int(clientPort)))
          sock.sendall(str(data).encode("utf-8"))
          sock.close()
          
-         conn.close()
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards
          # a dead drop only if the current round is active and the client 
