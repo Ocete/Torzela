@@ -92,7 +92,7 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            buffer = self.sock.recv(32768).decode('utf-8')
+            buffer = self.sock.recv(32768)
             lock = threading.Lock()
             try:
                lock.acquire()
