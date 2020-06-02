@@ -92,19 +92,20 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            buffer = self.sock.recv(32768)
+            buffer = self.sock.recv(32768).decode('utf-8')
             lock = threading.Lock()
             try:
                lock.acquire()
                print(buffer)
                print('hdsf')
-               print(pickle.loads(buffer))
+               # print(pickle.loads(buffer))
                print('bruh')
                data = pickle.loads(buffer)
-               self.chainServersPublicKeys = data
-               print(self.chainServersPublicKeys)
-               print(len(self.chainServersPublicKeys))
-               print('here')
+               print(data)
+               # self.chainServersPublicKeys = data
+               # print(self.chainServersPublicKeys)
+               # print(len(self.chainServersPublicKeys))
+               # print('here')
             except Exception as e:
                print(e)
             finally:
