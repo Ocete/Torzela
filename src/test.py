@@ -96,15 +96,15 @@ def testDialingProtocol():
 
 class Torzela:
    def __init__(self, port):
-      self.front = FrontServer('localhost', self.port+1, self.port)
-      self.middle = MiddleServer('localhost', self.port+2, self.port+1)
-      self.spreading = SpreadingServer([('localhost', self.port+3)], self.port+1)
+      self.front = FrontServer('localhost', port+1, port)
+      self.middle = MiddleServer('localhost', port+2, port+1)
+      self.spreading = SpreadingServer([('localhost', port+3)], port+1)
 
       self.front.chainServersPublicKeys = [self.front.getPublicKey(), 
                                           self.middle.getPublicKey(), 
                                           self.spreading.getPublicKey()]
       
-      self.dead = DeadDrop(self.port+3)
+      self.dead = DeadDrop(port+3)
 
       self.front.append(self.dead.getPublicKey())
       return
