@@ -7,15 +7,15 @@ import sys
 from message import Message
 import TorzelaUtils as TU
 import queue
+import pickle
 
 class Client:   
    # Configure the client with the IP and Port of the next server
-   def __init__(self, serverIP, serverPort, localPort, clientId):
+   def __init__(self, serverIP, serverPort, localPort):
       # serverIP and serverPort is the IP and port of the next
       # server in the chain
       self.serverIP = serverIP
       self.serverPort = serverPort
-      self.clientId = clientId
 
       # When getting a response from the network, this client
       # will listen on this port
@@ -84,8 +84,6 @@ class Client:
  
       self.connectionMade = False
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('', self.localPort))
-
       # While we have not been able to connect to the next server
       # in the chain...
       while not self.connectionMade:
@@ -94,23 +92,24 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            self.sock.listen(1) # listen for 1 connection
-
-            conn, server_addr = self.sock.accept()
-            data = conn.recv(32768).decode("utf-8")
-            
-            self.chainServersPublicKeys = pickle.load(data)
-            print('ganggaga')
+            buffer = self.sock.recv(32768).decode("utf-8")
+            print('gang')
+            self.chainServersPublicKeys = pickle.load(buffer)
             print(self.chainServersPublicKeys)
-            
+
             self.connectionMade = True
          except:
             # Just keep trying to connect...
             # Add a delay here so we don't consume a 
             # lot of CPU time
             time.sleep(1)
-      print("Client {} successfully connected!".format(self.clientId))
+      print("Client successfully connected!")
       # Close the connection after we verify everything is working
+      self.sock.close()
+
+      # Create the listening socket
+      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.bind(('localhost', self.localPort))
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
@@ -118,7 +117,7 @@ class Client:
          conn, server_addr = self.sock.accept()
          recvStr = conn.recv(32768).decode("utf-8")
          
-         print("Client {} got {}".format(self.clientId, recvStr))
+         print("Client got " + recvStr)
          
          msg = Message()
          msg.loadFromString(recvStr)
@@ -128,10 +127,9 @@ class Client:
             
          response = self.sendAndRecvMsg()
          if response.getPayload() != "":
-            print("Client {} received: {}".format(self.clientId,
-                  response.getPayload()))
+            print("Client received: {}".format(response.getPayload()))
          else:
-            print("Client {} received empty message".format(self.clientId))
+            print("Client received empty message")
             
    # Returns the dead drop chosen and the dead drop server where it's located.
    def computeDeadDrop(self, sharedSecret):
@@ -185,10 +183,6 @@ class Client:
       data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
                                   self.chainServersPublicKeys,
                                   data)
-      
-      # Appends your public key to the front of the message so the front
-      # server knows where to send it back
-      data = "{}#{}".format(TU.serializePublicKey(self.publicKey), data)
       
       return data
    
@@ -263,10 +257,7 @@ class Client:
       
       # Undo onion routing to the payload
       if self.partnerPublicKey != "": 
-         try:
-            m.setPayload( self.decryptPayload(m.getPayload()) )
-         except:
-            m.setPayload("")
+         m.setPayload( self.decryptPayload(m.getPayload()) )
       else:
          m.setPayload("")
          
@@ -291,7 +282,7 @@ class Client:
       # before we know the network is up and working
       while not self.connectionMade:
          time.sleep(1)
-      print('Client {} dialing'.format(self.clientId))
+      print('Dialing')
       # Connect to next server
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
@@ -342,8 +333,6 @@ class Client:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
             m.setPayload(data)
-            self.partnerPublicKey = TU.deserializePublicKey(data)
-            print("Client {} received invitation".format(self.clientId))
          except:
             pass
 
@@ -353,6 +342,7 @@ class Client:
    # queue of messages that will be sent to the Front Server
    def newMessage(self, payload):
       self.messagesQueue.put(payload)
+
 
    def get_private(self):
       return self.__privateKey
