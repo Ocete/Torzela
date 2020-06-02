@@ -93,15 +93,17 @@ class Client:
             # Try to connect and send it our setup message
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
-            self.connectionMade = True
 
-            self.sock.listen(10) # listen for 1 connection
+            self.sock.listen(1) # listen for 1 connection
+
             conn, server_addr = self.sock.accept()
             data = conn.recv(32768).decode("utf-8")
-
+            
             self.chainServersPublicKeys = pickle.load(data)
             print('ganggaga')
             print(self.chainServersPublicKeys)
+            
+            self.connectionMade = True
          except:
             # Just keep trying to connect...
             # Add a delay here so we don't consume a 
