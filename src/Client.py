@@ -95,11 +95,12 @@ class Client:
             buffer = self.sock.recv(32768).decode("utf-8")
             print(buffer)
             print('hdsf')
-            print(pickle.load(buffer))
+            print(pickle.loads(buffer))
             print('bruh')
-            data = pickle.load(buffer)
+            data = pickle.loads(buffer)
             self.chainServersPublicKeys = data
             print(self.chainServersPublicKeys)
+            print(len(self.chainServersPublicKeys))
             print('here')
 
             self.connectionMade = True
