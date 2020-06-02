@@ -43,7 +43,7 @@ class DeadDrop:
       threading.Thread(target=self.listen, args=()).start()
       
    def getPublicKey(self):
-      return TU.serializePublicKey(self.publicKey)
+      return self.publicKey
 
    # This is where all messages are handled
    def listen(self):

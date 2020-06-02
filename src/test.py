@@ -34,7 +34,7 @@ def testNetwork():
    ppk_spreadingServer = spreading.getPublicKey()
    ppk_deadDropServer = dead.getPublicKey()
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-   c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+   c.deadDropServersPublicKeys = [ ppk_deadDropServer ]
    c.partnerPublicKey = c_partner.publicKey
    
    # Configure your partner
@@ -80,7 +80,7 @@ def testDialingProtocol():
 
    for client in clients:
       client.chainServersPublicKeys = [ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-      client.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+      client.deadDropServersPublicKeys = [ ppk_deadDropServer ]
       
       # potential partners = set of all other available clients to speak to
       # not the same as partner client, the client w/ whom you are currently speaking with
@@ -96,3 +96,85 @@ def testDialingProtocol():
 
 if __name__ == "__main__":
    testDialingProtocol()
+
+initial_port = 7750
+class Torzela:
+   def __init__(self):
+      self.initial_port = initial_port
+      
+      self.front = FrontServer('localhost', self.initial_port+1, 
+                               self.initial_port)
+      self.middle = MiddleServer('localhost', self.initial_port+2, 
+                                 self.initial_port+1)
+      self.spreading = SpreadingServer([('localhost', self.initial_port+3)], 
+                                        self.initial_port+1)
+      self.chainServersPublicKeys = [self.front.getPublicKey(), 
+                                     self.middle.getPublicKey(), 
+                                     self.spreading.getPublicKey()] 
+      
+      self.dead = DeadDrop(self.initial_port+3)
+      self.deadDropServersPublicKeys = [ self.dead.getPublicKey() ]
+
+nextClientId = 1 
+
+def newClient(self):
+   print("Creating client {}".format(nextClientId))
+   c = Client('localhost', self.initial_port, 
+          self.initial_port + 4 + nextClientId,
+          clientId=nextClientId)
+   
+   nextClientId += 1
+   
+   
+   c.chainServersPublicKeys = self.chainServersPublicKeys
+   c.deadDropServersPublicKeys = self.deadDropServersPublicKeys
+   return c
+   
+   
+"""
+During the test open two terminals. One will have the servers running and the
+other one will have the two clients. Open python in both and do, in this order:
+   
+Terminal 1:
+from test import Torzela
+torzela = Torzela() # This inits all the servers
+
+Terminal 2:
+import test as T # This creates local values that makes everything a little easier
+c1 = T.newClient()
+c2 = T.newClient()
+
+# Up to this point rounds should be happening already in the server, but with empty messages
+
+# Dialing protocol
+c1.dial( c2.getPublicKey() )
+c2.download_invitations() # This should automatically connect c2 to c1
+
+# Conversation protocol
+c1.newMessage("Hello Torzela!")
+
+# After this you can check the onion routing in the first terminal
+"""
+   
+   
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      

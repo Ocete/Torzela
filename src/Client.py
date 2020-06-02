@@ -10,11 +10,12 @@ import queue
 
 class Client:   
    # Configure the client with the IP and Port of the next server
-   def __init__(self, serverIP, serverPort, localPort):
+   def __init__(self, serverIP, serverPort, localPort, clientId):
       # serverIP and serverPort is the IP and port of the next
       # server in the chain
       self.serverIP = serverIP
       self.serverPort = serverPort
+      self.clientId = clientId
 
       # When getting a response from the network, this client
       # will listen on this port
@@ -96,7 +97,7 @@ class Client:
             # Add a delay here so we don't consume a 
             # lot of CPU time
             time.sleep(1)
-      print("Client successfully connected!")
+      print("Client {} successfully connected!".format(self.clientId))
       # Close the connection after we verify everything is working
       self.sock.close()
 
@@ -110,7 +111,7 @@ class Client:
          conn, server_addr = self.sock.accept()
          recvStr = conn.recv(32768).decode("utf-8")
          
-         print("Client got " + recvStr)
+         print("Client {} got {}".format(self.clientId, recvStr))
          
          msg = Message()
          msg.loadFromString(recvStr)
@@ -120,9 +121,10 @@ class Client:
             
          response = self.sendAndRecvMsg()
          if response.getPayload() != "":
-            print("Client received: {}".format(response.getPayload()))
+            print("Client {} received: {}".format(self.clientId,
+                  response.getPayload()))
          else:
-            print("Client received empty message")
+            print("Client {} received empty message".format(self.clientId))
             
    # Returns the dead drop chosen and the dead drop server where it's located.
    def computeDeadDrop(self, sharedSecret):
@@ -282,7 +284,7 @@ class Client:
       # before we know the network is up and working
       while not self.connectionMade:
          time.sleep(1)
-      print('Dialing')
+      print('Client {} dialing'.format(self.clientId))
       # Connect to next server
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.sock.connect((self.serverIP, self.serverPort))
@@ -333,6 +335,8 @@ class Client:
             sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
             data = TU.decryptMessage(sharedSecret, data)
             m.setPayload(data)
+            self.partnerPublicKey = TU.deserializePublicKey(data)
+            print("Client {} received invitation".format(self.clientId))
          except:
             pass
 
