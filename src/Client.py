@@ -91,21 +91,17 @@ class Client:
             # Try to connect and send it our setup message
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
-
+            
+            # Read/Set server pks
             lock = threading.Lock()
             try:
                buffer = self.sock.recv(32768)
                lock.acquire()
-               print(buffer)
-               print('hdsf')
-               # print(pickle.loads(buffer))
-               print('bruh')
-               data = pickle.loads(buffer)
-               print(data)
-               # self.chainServersPublicKeys = data
-               # print(self.chainServersPublicKeys)
-               # print(len(self.chainServersPublicKeys))
-               # print('here')
+               pks = pickle.loads(buffer)
+               self.chainServersPublicKeys = pks['chain_pks']
+               self.deadDropServersPublicKeys = pks['dead_drop_pks']
+               print(self.chainServersPublicKey)
+               print(self.deadDropServersPublicKeys)
             except Exception as e:
                print(e)
             finally:

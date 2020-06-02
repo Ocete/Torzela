@@ -16,13 +16,14 @@ class Torzela:
       self.middle = MiddleServer('', port+2, port+1)
       self.spreading = SpreadingServer([('', port+3)], port+1)
 
-      self.front.chainServersPublicKeys = [self.front.getPublicKey(), 
+      self.front.chainServersPublicKeys.extend([self.front.getPublicKey(), 
                                           self.middle.getPublicKey(), 
-                                          self.spreading.getPublicKey()]
+                                          self.spreading.getPublicKey()])
       
       self.dead = DeadDrop(port+3)
 
-      self.front.chainServersPublicKeys.append(self.dead.getPublicKey())
+      self.front.chainServersPublicKeys
+      self.front.deadDropServersPublicKeys.append(self.dead.getPublicKey())
       return
 
 

@@ -137,11 +137,10 @@ class FrontServer:
          if clientEntry not in self.clientList:
             self.clientList.append(clientEntry)
          
-         serialized_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
-         print(serialized_pks)
-         print('dsfsdf')
-         data = pickle.dumps(serialized_pks)
-         print(data)
+         chain_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
+         dead_drop_pks = [TU.serializePublicKey(pk) for pk in self.deadDropServersPublicKeys]
+         pks = {'chain_pks': chain_pks, 'dead_drop_pks': dead_drop_pks}
+         data = pickle.dumps(pks)
          conn.sendall(data)
          conn.close()
 
