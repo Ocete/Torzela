@@ -93,9 +93,11 @@ class Client:
             self.sock.sendall(str.encode(str(setupMsg)))
 
             buffer = self.sock.recv(32768).decode("utf-8")
-            
-            self.chainServersPublicKeys = pickle.loads(buffer)
+            print(pickle.loads(buffer))
+            data = pickle.loads(buffer)
+            self.chainServersPublicKeys = data
             print(self.chainServersPublicKeys)
+            print('here')
 
             self.connectionMade = True
          except:
