@@ -37,6 +37,8 @@ class Message:
     Value 5: Empty message used by the Front Servers to tell the clients
              that a new round just started
     Value 6: Dialing Protocol: Download invitations from invitation dead drop
+    Value 10: New Client Public Key
+    Value 11: Invitation
    """
    def setNetInfo(self, netinfo):
       self.netinfo = str(netinfo)

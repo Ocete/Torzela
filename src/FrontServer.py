@@ -128,13 +128,25 @@ class FrontServer:
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
-         clientPort, clientPublicKey = clientMsg.getPayload().split("|")
+         clientPort, clientPublicKey, client_name = clientMsg.getPayload().split("|")
          
          # Build the entry for the client. See clientList above
          # Store the public key as a string
-         clientEntry = ((clientIP, clientPort), clientPublicKey)
+         clientEntry = ((clientIP, clientPort), clientPublicKey, client_name)
 
          if clientEntry not in self.clientList:
+            # Send new client's pk to all other clients
+            for clientEntry in self.clientList:
+               sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+               sock.connect((clientEntry[0][0], clientEntry[0][1]))
+               data = {'client_name': client_name, 'client_pk': TU.serializePublicKey(clientPublicKey), 'client_port': clientPort}
+               data = pickle.dumps(data)
+               message = Message()
+               message.setPayload(data)
+               message.netinfo(10)
+               sock.sendall(str(message).encode('utf-8'))
+               sock.close()
+            
             self.clientList.append(clientEntry)
          
          chain_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]

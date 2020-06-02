@@ -22,10 +22,11 @@ class Torzela:
       
       self.dead = DeadDrop(port+3)
 
-      self.front.chainServersPublicKeys
       self.front.deadDropServersPublicKeys.append(self.dead.getPublicKey())
       return
 
 
 if __name__ == "__main__":
    chain = Torzela(7750)
+
+

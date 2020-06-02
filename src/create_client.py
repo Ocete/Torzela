@@ -9,12 +9,21 @@ import TorzelaUtils as TU
 import time
 
 
-
-
 def new_client(clientId, new_port, front_server_port):
-   print(f"Creating client {clientId} on port {new_port}")
-   client = Client('', front_server_port, new_port)
-   return client
+    print(f"Creating client {clientId} on port {new_port}")
+    client = Client('', front_server_port, new_port)
+    return client
+
 
 if __name__ == "__main__":
-   new_client(1, 7754, 7750)
+    port = int(input('Enter port to host local messaging client: '))
+    name = str(input('Enter Your Name:'))
+    
+    client = Client('', 7750, port, client_name=name)
+    partner = str(input('Who would you like to contact?'))
+    
+    client.dial(partner)
+
+    while True:
+        message = input(f'Message to {partner}: ')
+        client.newMessage(message)

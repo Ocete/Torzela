@@ -11,11 +11,12 @@ import pickle
 
 class Client:   
    # Configure the client with the IP and Port of the next server
-   def __init__(self, serverIP, serverPort, localPort):
+   def __init__(self, serverIP, serverPort, localPort, client_name=None):
       # serverIP and serverPort is the IP and port of the next
       # server in the chain
       self.serverIP = serverIP
       self.serverPort = serverPort
+      self.client_name = client_name
 
       # When getting a response from the network, this client
       # will listen on this port
@@ -62,6 +63,7 @@ class Client:
       # the Spreading Server. These are provided by the Front Server 
       # after the first connection
       self.chainServersPublicKeys = []
+      self.partnerPublicKeys = []
       
       # The public keys from all the Dead Drops Servers.
       self.deadDropServersPublicKeys = []
@@ -80,7 +82,7 @@ class Client:
       setupMsg = Message()
       setupMsg.setNetInfo(0)
       serializedKey = TU.serializePublicKey(self.publicKey)
-      setupMsg.setPayload("{}|{}".format(self.localPort, serializedKey))
+      setupMsg.setPayload("{}|{}|{}".format(self.localPort, serializedKey, self.client_name))
  
       self.connectionMade = False
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,15 +131,32 @@ class Client:
          
          msg = Message()
          msg.loadFromString(recvStr)
-         if msg.getNetInfo() != 5:
+         
+         # New Potential Partner Joined Network
+         if msg.getNetInfo() == 10:
+            data = msg.getPayload()
+            data = pickle.loads(data)
+            new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
+            print(f'{new_client_name} joined the Torzela gang')
+            self.partnerPublicKeys.append((new_client_name, new_client_pk, new_client_port))
+         # new invitation
+         elif msg.getNetInfo() == 11:
+            data = msg.getPayload()
+            partner_name = data.split(':')[1]
+            for partner in self.partnerPublicKeys:
+               if partner[0] == partner_name:
+                  self.partnerPublicKey = partner[1]
+                  continue
+         elif msg.getNetInfo() != 5:
             print("Client error: waiting for round to start but received" +
                   " a different type of message")
-            
-         response = self.sendAndRecvMsg()
-         if response.getPayload() != "":
-            print("Client received: {}".format(response.getPayload()))
-         else:
-            print("Client received empty message")
+         else: 
+            # Message From Active Conversation
+            response = self.sendAndRecvMsg()
+            if response.getPayload() != "":
+               print("Client received: {}".format(response.getPayload()))
+            else:
+               print("Client received empty message")
             
    # Returns the dead drop chosen and the dead drop server where it's located.
    def computeDeadDrop(self, sharedSecret):
@@ -271,7 +290,24 @@ class Client:
          
       return m
 
-   def dial(self, recipient_public_key):
+   # Temporarily just ping
+   def dial(self, client_name):
+      for partner in self.partnerPublicKeys:
+         if partner[0] == client_name:
+            self.partnerPublicKey = partner[1]
+            # Connect to next server
+            tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tempSock.connect(('', partner[2]))
+            message = Message()
+            message.setPayload(f'Invitation from:{self.client_name}')
+            message.netinfo = 11
+            # Send our message to the server
+            tempSock.sendall(str(message).encode("utf-8"))
+            tempSock.close()
+            break
+      
+   
+   def new_dial(self, recipient_public_key):
       """
       Handle Dialing Protocol/ Invitation
       Dialing Protocol
@@ -285,6 +321,7 @@ class Client:
             2. Message Contents = sender's pk, nonce, and MAC encrypted w/ recipient's pk
          2. All Users periodicallally poll their assigned invitation dead drop to checksfor invitations
       """
+      
       # If the initial setup has not gone through,
       # then just block and wait. We can't send anything
       # before we know the network is up and working
@@ -311,40 +348,41 @@ class Client:
       return
    
    def download_invitations(self, invitationDeadDropPort, potential_partner_pks):
-      time.sleep(10)
-      self.invitationDeadDropPort = invitationDeadDropPort
-      dial_message = Message()
-      dial_message.setNetInfo(6)
-      dial_message.setPayload("{}|{}".format(self.localPort, TU.serializePublicKey(self.publicKey)))
- 
-      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       while True:
-         try:
-            self.sock.connect(('localhost', self.invitationDeadDropPort))
-            self.sock.sendall(str.encode(str(dial_message)))
-            break
-         except:
-            time.sleep(1)
+         time.sleep(10)
+         self.invitationDeadDropPort = invitationDeadDropPort
+         dial_message = Message()
+         dial_message.setNetInfo(6)
+         dial_message.setPayload("{}|{}".format(self.localPort, TU.serializePublicKey(self.publicKey)))
+   
+         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         while True:
+            try:
+               self.sock.connect(('', self.invitationDeadDropPort))
+               self.sock.sendall(str.encode(str(dial_message)))
+               break
+            except:
+               time.sleep(1)
 
-      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('localhost', self.localPort))
-      self.sock.listen(1) # listen for 1 connection
-      conn, server_addr = self.sock.accept()
-      # All messages are fixed to 4K
-      data = conn.recv(32768).decode("utf-8")
+         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         self.sock.bind(('localhost', self.localPort))
+         self.sock.listen(1) # listen for 1 connection
+         conn, server_addr = self.sock.accept()
+         # All messages are fixed to 4K
+         data = conn.recv(32768).decode("utf-8")
 
-      data = data.encode('latin_1')
+         data = data.encode('latin_1')
 
-      m = Message()
-      for potential_partner_pk in potential_partner_pks:
-         try:
-            sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
-            data = TU.decryptMessage(sharedSecret, data)
-            m.setPayload(data)
-         except:
-            pass
+         m = Message()
+         for potential_partner_pk in potential_partner_pks:
+            try:
+               sharedSecret = TU.computeSharedSecret(self.__privateKey, potential_partner_pk)
+               data = TU.decryptMessage(sharedSecret, data)
+               m.setPayload(data)
+            except:
+               pass
 
-      return m
+         return m
 
    # Receives a string, adds a new message with the given payload to the
    # queue of messages that will be sent to the Front Server
