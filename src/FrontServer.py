@@ -142,7 +142,7 @@ class FrontServer:
          print('dsfsdf')
          data = pickle.dumps(serialized_pks)
          print(data)
-         conn.sendall(str(data).encode("utf-8"))
+         conn.sendall(data)
          conn.close()
 
          
