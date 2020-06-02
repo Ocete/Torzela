@@ -127,7 +127,6 @@ class FrontServer:
 
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
-         conn.close()
          # Add client's public key to our list of clients
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
          
@@ -147,6 +146,8 @@ class FrontServer:
          sock.connect(('', clientPort))
          sock.sendall(str(data).encode("utf-8"))
          sock.close()
+         conn.close()
+
          
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards

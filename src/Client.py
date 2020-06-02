@@ -7,7 +7,6 @@ import sys
 from message import Message
 import TorzelaUtils as TU
 import queue
-import pickle
 
 class Client:   
    # Configure the client with the IP and Port of the next server
@@ -85,6 +84,8 @@ class Client:
  
       self.connectionMade = False
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.sock.bind(('', self.localPort))
+
       # While we have not been able to connect to the next server
       # in the chain...
       while not self.connectionMade:
@@ -92,22 +93,15 @@ class Client:
             # Try to connect and send it our setup message
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
+            self.connectionMade = True
 
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print(self.serverPort)
-            sock.connect(('0.0.0.0', self.serverPort))
-            sock.listen(10)
-            conn, server_addr = sock.accept()
-            # All messages are fixed to 32K
+            self.sock.listen(10) # listen for 1 connection
+            conn, server_addr = self.sock.accept()
             data = conn.recv(32768).decode("utf-8")
-            conn.close()
-            
+
             self.chainServersPublicKeys = pickle.load(data)
             print('ganggaga')
             print(self.chainServersPublicKeys)
-
-            self.connectionMade = True
-            
          except:
             # Just keep trying to connect...
             # Add a delay here so we don't consume a 
@@ -115,11 +109,6 @@ class Client:
             time.sleep(1)
       print("Client {} successfully connected!".format(self.clientId))
       # Close the connection after we verify everything is working
-      self.sock.close()
-
-      # Create the listening socket
-      self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('', self.localPort))
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
@@ -330,14 +319,14 @@ class Client:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       while True:
          try:
-            self.sock.connect(('', self.invitationDeadDropPort))
+            self.sock.connect(('localhost', self.invitationDeadDropPort))
             self.sock.sendall(str.encode(str(dial_message)))
             break
          except:
             time.sleep(1)
 
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.connect(('', self.localPort))
+      self.sock.bind(('localhost', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K
