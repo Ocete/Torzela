@@ -93,8 +93,10 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            self.sock.listen()
-            conn, server_addr = self.sock.accept()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((self.serverIP, self.serverPort))
+            sock.listen(1)
+            conn, server_addr = sock.accept()
             # All messages are fixed to 32K
             data = conn.recv(32768).decode("utf-8")
             conn.close()
