@@ -98,10 +98,8 @@ class Client:
                buffer = self.sock.recv(32768)
                lock.acquire()
                pks = pickle.loads(buffer)
-               self.chainServersPublicKeys = pks['chain_pks']
-               self.deadDropServersPublicKeys = pks['dead_drop_pks']
-               print(self.chainServersPublicKey)
-               print(self.deadDropServersPublicKeys)
+               self.chainServersPublicKeys = [TU.deserializePublicKey(pk) for pk in pks['chain_pks']]
+               self.deadDropServersPublicKeys = [TU.deserializePublicKey(pk) for pk in pks['dead_drop_pks']]
             except Exception as e:
                print(e)
             finally:
