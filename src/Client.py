@@ -177,6 +177,10 @@ class Client:
                                   self.chainServersPublicKeys,
                                   data)
       
+      # Appends your public key to the front of the message so the front
+      # server knows where to send it back
+      data = "{}#{}".format(TU.serializePublicKey(self.publicKey), data)
+      
       return data
    
    # data is a string containing the received message payload. Undo onion 
@@ -250,7 +254,10 @@ class Client:
       
       # Undo onion routing to the payload
       if self.partnerPublicKey != "": 
-         m.setPayload( self.decryptPayload(m.getPayload()) )
+         try:
+            m.setPayload( self.decryptPayload(m.getPayload()) )
+         except:
+            m.setPayload("")
       else:
          m.setPayload("")
          
@@ -335,7 +342,6 @@ class Client:
    # queue of messages that will be sent to the Front Server
    def newMessage(self, payload):
       self.messagesQueue.put(payload)
-
 
    def get_private(self):
       return self.__privateKey

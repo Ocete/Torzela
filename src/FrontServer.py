@@ -48,8 +48,8 @@ class FrontServer:
       #    key ; (ip, port) ; message -- respectively
       # for the message that arrived the i-th in the current round.
       self.clientLocalKeys = []
-      self.clientIPsAndPorts = []
       self.clientMessages = []
+      self.clientPublicKeys = []
       
       # The server keys
       self.__privateKey, self.publicKey = TU.generateKeys( 
@@ -126,13 +126,8 @@ class FrontServer:
          # Add client's public key to our list of clients
          clientPort, clientPublicKey = clientMsg.getPayload().split("|")
          
-         # TODO (jose/matthew) -> First this is not the public key of the 
-         # client it is the local one. second, we don't need to store this here
-         # it is stored in self.clientLocalKeys. third, the server shouldn't know 
-         # the client public key, just the local one. This is inconsistent.
-         clientPublicKey = TU.deserializePublicKey(clientPublicKey) 
-         
          # Build the entry for the client. See clientList above
+         # Store the public key as a string
          clientEntry = ((clientIP, clientPort), clientPublicKey)
 
          if clientEntry not in self.clientList:
@@ -142,20 +137,20 @@ class FrontServer:
          # Process packets coming from a client and headed towards
          # a dead drop only if the current round is active and the client 
          # hasn't already send a msessage
-         clientPort = client_addr[1]
-         if self.currentRound.open and (clientIP, clientPort) not in self.clientIPsAndPorts:
+         clientPublicKey, payload = clientMsg.getPayload().split("#", 1)
+         if self.currentRound.open and clientPublicKey not in self.clientPublicKeys:
             
             # Decrypt one layer of the onion message
             clientLocalKey, newPayload = TU.decryptOnionLayer(
-                  self.__privateKey, clientMsg.getPayload(), serverType=0)
+                  self.__privateKey, payload, serverType=0)
             clientMsg.setPayload(newPayload)
             
             # Save the message data
             # TODO (jose) -> use the lock here. Multiple threads could try to 
             # access this info at the same time. In fact, we should process 
             # messages with netinfo == 1 ONE AT A TIME or could create inconsistences.
+            self.clientPublicKeys.append(clientPublicKey)
             self.clientLocalKeys.append(clientLocalKey)
-            self.clientIPsAndPorts.append((clientIP, clientPort))
             self.clientMessages.append(clientMsg)
          
       elif clientMsg.getNetInfo() == 2:
@@ -279,7 +274,24 @@ class FrontServer:
                                                         permutation)
       
       # Send each response back to the correct client
-      for (clientIP, clientPort), msg in zip(self.clientIPsAndPorts, self.clientMessages):         
+      for clientPK, msg in zip(self.clientPublicKeys, self.clientMessages):
+         # Find the client ip and port using the clients keys
+         matches = [ (ip, port) for ((ip, port), pk) in self.clientList 
+                     if clientPK == pk]
+         if len(matches) == 0:
+            print("Front server error: couldn't find client where to send the response")
+            
+            print("Lost key: {}".format([clientPK]))
+            print(self.clientList)
+            
+            continue
+         elif len(matches) > 1:
+            print("Front server error: too many clients where to send the response")
+            continue
+         clientIP, clientPort = matches[0]
+         clientPort = int(clientPort)
+         
+         print("Trying to send message to {}##{}".format(clientIP, clientPort))
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((clientIP, clientPort))
          tempSock.sendall(str(msg).encode("utf-8"))

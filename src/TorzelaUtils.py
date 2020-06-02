@@ -283,7 +283,6 @@ def testAsync():
    import time
    import threading
    import logging
-   import sys
    
    def goaaaaa(i, lock):
       logging.info("goaaaa")

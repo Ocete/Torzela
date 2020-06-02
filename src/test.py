@@ -19,7 +19,7 @@ def testNetwork():
    # port 7775
    # We can do any kind of test we want in here...
    
-   initial_port = 7650
+   initial_port = 7630
    
    c = Client('localhost', initial_port+1, initial_port)
    c_partner = Client('localhost', initial_port+1, initial_port-1)
