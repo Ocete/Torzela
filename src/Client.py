@@ -97,11 +97,14 @@ class Client:
             print('hdsf')
             print(pickle.loads(buffer))
             print('bruh')
-            data = pickle.loads(buffer)
-            self.chainServersPublicKeys = data
-            print(self.chainServersPublicKeys)
-            print(len(self.chainServersPublicKeys))
-            print('here')
+            try:
+               data = pickle.loads(buffer)
+               self.chainServersPublicKeys = data
+               print(self.chainServersPublicKeys)
+               print(len(self.chainServersPublicKeys))
+               print('here')
+            except Exception as e:
+               print(e)
 
             self.connectionMade = True
          except:
