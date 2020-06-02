@@ -93,11 +93,13 @@ class Client:
             self.sock.sendall(str.encode(str(setupMsg)))
 
             buffer = self.sock.recv(32768).decode("utf-8")
-            print(buffer)
-            print('hdsf')
-            print(pickle.loads(buffer))
-            print('bruh')
+            lock = threading.Lock()
             try:
+               lock.acquire()
+               print(buffer)
+               print('hdsf')
+               print(pickle.loads(buffer))
+               print('bruh')
                data = pickle.loads(buffer)
                self.chainServersPublicKeys = data
                print(self.chainServersPublicKeys)
@@ -105,6 +107,8 @@ class Client:
                print('here')
             except Exception as e:
                print(e)
+            finally:
+               lock.release()
 
             self.connectionMade = True
          except:
