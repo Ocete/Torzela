@@ -93,16 +93,16 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            self.sock.listen(1) # listen for 1 connection
+            self.sock.listen(1)
             conn, server_addr = self.sock.accept()
-            recvStr = conn.recv(32768).decode("utf-8")
+            # All messages are fixed to 32K
+            data = conn.recv(32768).decode("utf-8")
+            conn.close()
             
-
-               
-
-
-
-
+            self.chainServersPublicKeys = pickle.load(data)
+            print('ganggaga')
+            print(self.chainServersPublicKeys)
+            
             self.connectionMade = True
             
          except:
