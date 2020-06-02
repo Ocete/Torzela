@@ -82,9 +82,7 @@ class DeadDrop:
 
       # Check if the packet is for sending a message
       elif clientMsg.getNetInfo() == 1:
-         # Forward packet back. Whoever handles the dead drops
-         # will be working here mainly. Right now this just
-         # sends the packet back to all connected clients
+         # In here, packets were trying to reach this server
 
          # First, close the connection. This may seem
          # weird, but at this point we already have the message
@@ -170,9 +168,11 @@ class DeadDrop:
       uniqueIDs = { k : v for k,v in defaultList.items() if len(v) == 1}
       dupIDs = { k : v for k,v in defaultList.items() if len(v) == 2}
 
-      # Return the empty string to clients who received no response
+      # Return an empty message to clients who received no response
       for id, indices in uniqueIDs.items():
-         self.clientMessages[indices[0]] = ""
+         m = Message()
+         m.setPayload("")
+         self.clientMessages[indices[0]] = m
 
       # Return the swapped messages for clients who are connected to the
       # same dead drop
@@ -181,7 +181,6 @@ class DeadDrop:
 	      self.clientMessages[indices[0]] = self.clientMessages[indices[1]]
 	      self.clientMessages[indices[1]] = temp
 
-      time.sleep(1)
       
       # Encrypt all the messages before sending them back
       for msg, clientLocalKey in zip(self.clientMessages, 

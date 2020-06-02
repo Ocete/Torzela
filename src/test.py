@@ -6,7 +6,6 @@ from MiddleServer import MiddleServer
 from SpreadingServer import SpreadingServer
 from DeadDrop import DeadDrop
 import TorzelaUtils as TU
-import threading
 import time
 
 def testNetwork():
@@ -16,12 +15,14 @@ def testNetwork():
    #
    # Client    ->  FrontServer -> MiddleServer -> SpreadingServer -> DeadDrop
    # port 7776     port 7777      port 7778       port 7779          port 7780
-   
+   # Client 2
+   # port 7775
    # We can do any kind of test we want in here...
    
-   initial_port = 7734
+   initial_port = 7650
    
    c = Client('localhost', initial_port+1, initial_port)
+   c_partner = Client('localhost', initial_port+1, initial_port-1)
    front = FrontServer('localhost', initial_port+2, initial_port+1)
    middle = MiddleServer('localhost', initial_port+3, initial_port+2)
    spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
@@ -34,12 +35,18 @@ def testNetwork():
    ppk_deadDropServer = dead.getPublicKey()
    c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
    c.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
-   c.partnerPublicKey = c.publicKey
+   c.partnerPublicKey = c_partner.publicKey
+   
+   # Configure your partner
+   c_partner.partnerPublicKey = c.publicKey
+   c_partner.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
+   c_partner.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
 
    # Prepare the message
    c.newMessage("Hello Torzela!")   
+   c_partner.newMessage("Hello friend!")
    c.newMessage("Second round!")   
-   c.newMessage("Round three baby!")   
+   c.newMessage("Round three baby!")
    
    # When the next round starts, the Front Server will notify the client,
    # who will send the message "Hello Torzela". Right now, the message will go
@@ -58,7 +65,7 @@ def testDialingProtocol():
    
    # We can do any kind of test we want in here...
    
-   initial_port = 7734
+   initial_port = 7750
    clients = [Client('localhost', initial_port+1, initial_port-1), Client('localhost', initial_port+1, initial_port)]
    front = FrontServer('localhost', initial_port+2, initial_port+1)
    middle = MiddleServer('localhost', initial_port+3, initial_port+2)

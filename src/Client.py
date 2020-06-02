@@ -334,16 +334,7 @@ class Client:
    # Receives a string, adds a new message with the given payload to the
    # queue of messages that will be sent to the Front Server
    def newMessage(self, payload):
-      msg = Message()
-      msg.setPayload(payload)
-      
-      # Prepare the payload following the conversational protocol
-      msg.setPayload( self.preparePayload(msg.getPayload()) )
-      
-      # This 1 means we are sending the message towards a dead drop 
-      msg.setNetInfo(1)
-      
-      self.messagesQueue.put(msg)
+      self.messagesQueue.put(payload)
 
 
    def get_private(self):

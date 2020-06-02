@@ -48,7 +48,7 @@ class FrontServer:
       #    key ; (ip, port) ; message -- respectively
       # for the message that arrived the i-th in the current round.
       self.clientLocalKeys = []
-      self.clientIPs = []
+      self.clientIPsAndPorts = []
       self.clientMessages = []
       
       # The server keys
@@ -142,7 +142,8 @@ class FrontServer:
          # Process packets coming from a client and headed towards
          # a dead drop only if the current round is active and the client 
          # hasn't already send a msessage
-         if self.currentRound.open and clientIP not in self.clientIPs:
+         clientPort = client_addr[1]
+         if self.currentRound.open and (clientIP, clientPort) not in self.clientIPsAndPorts:
             
             # Decrypt one layer of the onion message
             clientLocalKey, newPayload = TU.decryptOnionLayer(
@@ -154,7 +155,7 @@ class FrontServer:
             # access this info at the same time. In fact, we should process 
             # messages with netinfo == 1 ONE AT A TIME or could create inconsistences.
             self.clientLocalKeys.append(clientLocalKey)
-            self.clientIPs.append(clientIP)
+            self.clientIPsAndPorts.append((clientIP, clientPort))
             self.clientMessages.append(clientMsg)
          
       elif clientMsg.getNetInfo() == 2:
@@ -187,7 +188,7 @@ class FrontServer:
          
          # Reset the saved info about the messages for the round before it starts
          self.clientLocalKeys = []
-         self.clientIPs = []
+         self.clientIPsAndPorts = []
          self.clientMessages = []
          
          # Create the new round using our class above
@@ -278,19 +279,7 @@ class FrontServer:
                                                         permutation)
       
       # Send each response back to the correct client
-      for clientIP, msg in zip(self.clientIPs, self.clientMessages):
-         # Find the client port using the clients list
-         matches = [ clientIpPort[1] for clientIpPort, clientKey in 
-                    self.clientList if clientIpPort[0] == clientIP]
-         if len(matches) == 0:
-            print("Front server error: couldn't find ip where to send the response")
-            continue
-         elif len(matches) > 1:
-            print("Front server error: too many ips where to send the response")
-            continue
-         clientPort = int(matches[0])
-         
-         # Send the response
+      for (clientIP, clientPort), msg in zip(self.clientIPsAndPorts, self.clientMessages):         
          tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          tempSock.connect((clientIP, clientPort))
          tempSock.sendall(str(msg).encode("utf-8"))
