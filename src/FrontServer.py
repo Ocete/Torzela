@@ -214,12 +214,6 @@ class FrontServer:
          
          # Now that round has ended, mark current round as closed
          self.currentRound.open = False
-   
-         # Iterate through clients and have them connect to a new dead drop
-         # server -> NOTE FROM JOSE: you don't need to do this. The msg already
-         # contains that info, it's processed in the client. You will just 
-         # need to use it in the Dead Drop Server afterwards. You can delete
-         # this comment when you read it Edric
          
          # TODO -> Once the noice addition is added, the rounds should ALWAYS 
          # run, no matter if there are no messages
