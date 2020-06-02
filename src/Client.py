@@ -94,7 +94,8 @@ class Client:
             self.sock.sendall(str.encode(str(setupMsg)))
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.serverIP, self.serverPort))
+            print(self.serverPort)
+            sock.connect(('0.0.0.0', self.serverPort))
             sock.listen(1)
             conn, server_addr = sock.accept()
             # All messages are fixed to 32K
