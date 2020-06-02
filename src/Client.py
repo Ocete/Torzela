@@ -93,9 +93,8 @@ class Client:
             self.sock.sendall(str.encode(str(setupMsg)))
 
             buffer = self.sock.recv(32768).decode("utf-8")
-            print(buffer)
-            print('gang')
-            self.chainServersPublicKeys = pickle.load(buffer)
+            
+            self.chainServersPublicKeys = pickle.loads(buffer)
             print(self.chainServersPublicKeys)
 
             self.connectionMade = True
