@@ -6,6 +6,9 @@ For everyone in the group include one sentence on each of these:
 	3. Anything you are stuck on.  
 Also include links to any PRs you committed or design docs you wrote.
 
+### Final Presentation 
+
+https://docs.google.com/presentation/d/1m-L4UyamrVWhJimGO6wXxyu8sKUGd8Na68ly7h_1W2o/edit?usp=sharing
 
 ### Weekly Meeting Notes
 
