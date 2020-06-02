@@ -96,7 +96,7 @@ class Client:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             print(self.serverPort)
             sock.connect(('0.0.0.0', self.serverPort))
-            sock.listen(1)
+            sock.listen(10)
             conn, server_addr = sock.accept()
             # All messages are fixed to 32K
             data = conn.recv(32768).decode("utf-8")
