@@ -112,7 +112,7 @@ class Torzela:
 
  
 def new_client(self, clientId, new_port, front_server_port):
-   print(f"Creating client {clientId} on port {self.curr_open_port}"
+   print(f"Creating client {clientId} on port {self.curr_open_port}")
    client = Client('localhost', front_server_port, new_port, clientId=clientId)
    return client
 
