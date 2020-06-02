@@ -14,9 +14,10 @@ if __name__ == "__main__":
     port = int(input('Enter port to host local messaging client: '))
     name = str(input('Enter Your Name:'))
     
-    print(f"Creating client {clientId} on port {new_port}")
-
     client = Client('', 7750, port, client_name=name)
+    
+    print('Welcome to Torzela {name}!')
+
     partner = str(input('Who would you like to contact?'))
     
     client.dial(partner)
