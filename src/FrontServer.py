@@ -138,7 +138,6 @@ class FrontServer:
             self.clientList.append(clientEntry)
          
          serialized_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
-         print(serialized_pks)
          data = pickle.dumps(serialized_pks)
          conn.sendall(str(data).encode("utf-8"))
          conn.close()
