@@ -92,9 +92,9 @@ class Client:
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
 
-            buffer = self.sock.recv(32768)
             lock = threading.Lock()
             try:
+               buffer = self.sock.recv(32768)
                lock.acquire()
                print(buffer)
                print('hdsf')
