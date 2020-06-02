@@ -140,12 +140,7 @@ class FrontServer:
          serialized_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
          
          data = pickle.dumps(serialized_pks)
-
-         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         # sock.bind(('', self.localPort))
-         sock.connect(('', int(clientPort)))
-         sock.sendall(str(data).encode("utf-8"))
-         sock.close()
+         conn.sendall(str(data).encode("utf-8"))
          conn.close()
 
          
