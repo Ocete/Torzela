@@ -4,6 +4,7 @@ import socket
 import threading
 import asyncio
 import time
+import pickle
 from message import Message
 import TorzelaUtils as TU
 
@@ -34,6 +35,9 @@ class FrontServer:
       self.lock = asyncio.Lock()
       self.roundDuration = 2
       self.currentRound = ""
+
+      self.chainServersPublicKeys = []
+      self.deadDropServersPublicKeys = []
 
       # This will allow us to associate a client with it's public key
       # So that we can figure out which client should get which packet
@@ -132,6 +136,16 @@ class FrontServer:
 
          if clientEntry not in self.clientList:
             self.clientList.append(clientEntry)
+         
+         serialized_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
+         
+         data = pickle.dumps(serialized_pks)
+
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect(('localhost', clientPort))
+         sock.sendall(str(data).encode("utf-8"))
+         sock.close()
+         
          conn.close()
       elif clientMsg.getNetInfo() == 1: 
          # Process packets coming from a client and headed towards

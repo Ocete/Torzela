@@ -7,6 +7,7 @@ import sys
 from message import Message
 import TorzelaUtils as TU
 import queue
+import pickle
 
 class Client:   
    # Configure the client with the IP and Port of the next server
@@ -91,7 +92,19 @@ class Client:
             # Try to connect and send it our setup message
             self.sock.connect((self.serverIP, self.serverPort))
             self.sock.sendall(str.encode(str(setupMsg)))
+
+            self.sock.listen(1) # listen for 1 connection
+            conn, server_addr = self.sock.accept()
+            recvStr = conn.recv(32768).decode("utf-8")
+            
+
+               
+
+
+
+
             self.connectionMade = True
+            
          except:
             # Just keep trying to connect...
             # Add a delay here so we don't consume a 

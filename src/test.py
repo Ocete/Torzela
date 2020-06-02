@@ -94,41 +94,40 @@ def testDialingProtocol():
    print("RECEIVED INVITATION: " + invitation.getPayload())
 
 
-if __name__ == "__main__":
-   testDialingProtocol()
-
-initial_port = 7750
 class Torzela:
-   def __init__(self):
-      self.initial_port = initial_port
+   def __init__(self, port):
+      self.front = FrontServer('localhost', self.port+1, self.port)
+      self.middle = MiddleServer('localhost', self.port+2, self.port+1)
+      self.spreading = SpreadingServer([('localhost', self.port+3)], self.port+1)
+
+      self.front.chainServersPublicKeys = [self.front.getPublicKey(), 
+                                          self.middle.getPublicKey(), 
+                                          self.spreading.getPublicKey()]
       
-      self.front = FrontServer('localhost', self.initial_port+1, 
-                               self.initial_port)
-      self.middle = MiddleServer('localhost', self.initial_port+2, 
-                                 self.initial_port+1)
-      self.spreading = SpreadingServer([('localhost', self.initial_port+3)], 
-                                        self.initial_port+1)
-      self.chainServersPublicKeys = [self.front.getPublicKey(), 
-                                     self.middle.getPublicKey(), 
-                                     self.spreading.getPublicKey()] 
-      
-      self.dead = DeadDrop(self.initial_port+3)
-      self.deadDropServersPublicKeys = [ self.dead.getPublicKey() ]
+      self.dead = DeadDrop(self.port+3)
+
+      self.front.append(self.dead.getPublicKey())
+      return
+
+
+ 
+def new_client(self, clientId, new_port, front_server_port):
+   print(f"Creating client {clientId} on port {self.curr_open_port}"
+   client = Client('localhost', front_server_port, new_port, clientId=clientId)
+   return client
+
+
+if __name__ == "__main__":
+   chain = Torzela(7750)
+
+
+   # testDialingProtocol()
+
+
 
 nextClientId = 1 
 
-def newClient(self):
-   print("Creating client {}".format(nextClientId))
-   c = Client('localhost', self.initial_port, 
-          self.initial_port + 4 + nextClientId,
-          clientId=nextClientId)
-   
-   nextClientId += 1
-   
-   
-   c.chainServersPublicKeys = self.chainServersPublicKeys
-   c.deadDropServersPublicKeys = self.deadDropServersPublicKeys
-   return c
+
    
    
 """
