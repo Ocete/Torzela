@@ -110,15 +110,8 @@ class Torzela:
       return
 
 
- 
-def new_client(clientId, new_port, front_server_port):
-   print(f"Creating client {clientId} on port {new_port}")
-   client = Client('localhost', front_server_port, new_port, clientId=clientId)
-   return client
-
-
 if __name__ == "__main__":
-   chain = Torzela(7750)
+   Torzela(7750)
 
 
    # testDialingProtocol()

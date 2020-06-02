@@ -142,7 +142,7 @@ class FrontServer:
          data = pickle.dumps(serialized_pks)
 
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect(('localhost', clientPort))
+         sock.connect(('localhost', int(clientPort)))
          sock.sendall(str(data).encode("utf-8"))
          sock.close()
          
