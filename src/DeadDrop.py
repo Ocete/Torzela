@@ -3,6 +3,7 @@
 import socket
 import threading
 import time
+from collections import defaultdict
 from message import Message
 import TorzelaUtils as TU
 import sys
@@ -21,7 +22,13 @@ class DeadDrop:
       # is the port the previous server is using
       self.previousServers = []
 
-      # Used for onion rotuing in the conversational protocol  
+      # This will hold the list of dead drop IDs that each message 
+      # wants to access. The idea here is that if two IDs match,
+      # we'll swap their positions in the clientMessages array
+      # so that the messages are properly exchanged.
+      self.deadDropIDs = []
+
+      # Used for onion routing in the conversational protocol  
       # The keys and messages will be updated each round
       self.clientLocalKeys = []
       self.clientMessages = []
@@ -96,6 +103,7 @@ class DeadDrop:
          # newPayload -> RESPONSE message body
          
          # Save the message data
+         self.deadDropIDs.append(deadDrop)
          self.clientLocalKeys.append(clientLocalKey)
          self.clientMessages.append(clientMsg)
 
@@ -142,12 +150,38 @@ class DeadDrop:
    # sends the responses back to the spreading servers
    def runRound(self):
       
-      # TODO (edric): compute the matches between the different clients.
-      # That is, for every two clients, if they are accessing the same dead
-      # drop, swap the messages, don't change anything else. 
-      # If a client does not recieve a response, return the empty message: ""
-      time.sleep(1)
+      # The following code computes the matches between different clients
+      # It creats a dictionary of dead drop IDs, linking each ID with their
+      # index of occurence in self.deadDropIDs
+
+      # If a dead drop ID has two indices, then we swap the values at those
+      # indexes in order to exchange messages
+
+      # If a dead drop ID has only one index, then we change that value at
+      # that index in the messages list to ""
       
+      defaultList = defaultdict(list)
+
+      for index, element in enumerate(self.deadDropIDs):
+	      defaultList[element].append(index)
+
+      # Create two separate dictionaries, one for IDs which only appeared
+      # once and one for IDs which appeared twice
+      uniqueIDs = { k : v for k,v in defaultList.items() if len(v) == 1}
+      dupIDs = { k : v for k,v in defaultList.items() if len(v) == 2}
+
+      # Return the empty string to clients who received no response
+      for id, indices in uniqueIDs.items():
+         self.clientMessages[indices[0]] = ""
+
+      # Return the swapped messages for clients who are connected to the
+      # same dead drop
+      for id, indices in dupIDs.items():
+	      temp = self.clientMessages[indices[0]]
+	      self.clientMessages[indices[0]] = self.clientMessages[indices[1]]
+	      self.clientMessages[indices[1]] = temp
+
+      time.sleep(1)
       
       # Encrypt all the messages before sending them back
       for msg, clientLocalKey in zip(self.clientMessages, 
@@ -160,9 +194,8 @@ class DeadDrop:
          # We need to set this to 2 so that the other servers
          # in the chain know to send this back to the client
          msg.setNetInfo(2)
-      
-      
          
+      
       # Send message back to all spreading servers
       for prevServer in self.previousServers:
          prevServerIP = prevServer[0]
