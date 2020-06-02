@@ -13,7 +13,7 @@ import time
 
 def new_client(clientId, new_port, front_server_port):
    print(f"Creating client {clientId} on port {new_port}")
-   client = Client(front_server_port, new_port, clientId=clientId)
+   client = Client('', front_server_port, new_port)
    return client
 
 if __name__ == "__main__":
