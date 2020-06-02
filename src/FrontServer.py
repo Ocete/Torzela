@@ -144,7 +144,7 @@ class FrontServer:
 
          sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          print(clientPort)
-         sock.connect(('', int(clientPort)))
+         sock.connect((client_addr[0], int(client_addr[1])))
          sock.sendall(str(data).encode("utf-8"))
          sock.close()
          
