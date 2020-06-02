@@ -119,7 +119,7 @@ class Client:
 
       # Create the listening socket
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('localhost', self.localPort))
+      self.sock.bind(('', self.localPort))
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
@@ -330,14 +330,14 @@ class Client:
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       while True:
          try:
-            self.sock.connect(('localhost', self.invitationDeadDropPort))
+            self.sock.connect(('', self.invitationDeadDropPort))
             self.sock.sendall(str.encode(str(dial_message)))
             break
          except:
             time.sleep(1)
 
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('localhost', self.localPort))
+      self.sock.bind(('', self.localPort))
       self.sock.listen(1) # listen for 1 connection
       conn, server_addr = self.sock.accept()
       # All messages are fixed to 4K

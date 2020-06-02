@@ -42,7 +42,7 @@ class FrontServer:
       # This will allow us to associate a client with it's public key
       # So that we can figure out which client should get which packet
       # Entries are in the form
-      # ((<IP>,<Port>), <Public Key>)     (i.e. (('localhost', 80), "mykey") )
+      # ((<IP>,<Port>), <Public Key>)     (i.e. (('', 80), "mykey") )
       # where <IP> is the client's IP address, <Port> is the client's
       # listening port, and <Public Key> is the client's public key
       self.clientList = []
@@ -101,7 +101,7 @@ class FrontServer:
 
       # Listen for incoming connections
       self.listenSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.listenSock.bind(('localhost', self.localPort))
+      self.listenSock.bind(('', self.localPort))
       self.listenSock.listen(10) # buffer 10 connections  
    
       while True:

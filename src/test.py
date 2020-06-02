@@ -21,11 +21,11 @@ def testNetwork():
    
    initial_port = 7630
    
-   c = Client('localhost', initial_port+1, initial_port)
-   c_partner = Client('localhost', initial_port+1, initial_port-1)
-   front = FrontServer('localhost', initial_port+2, initial_port+1)
-   middle = MiddleServer('localhost', initial_port+3, initial_port+2)
-   spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
+   c = Client('', initial_port+1, initial_port)
+   c_partner = Client('', initial_port+1, initial_port-1)
+   front = FrontServer('', initial_port+2, initial_port+1)
+   middle = MiddleServer('', initial_port+3, initial_port+2)
+   spreading = SpreadingServer([('', initial_port+4)], initial_port+3)
    dead = DeadDrop(initial_port+4)
    
    # Set the keys in the client
@@ -66,10 +66,10 @@ def testDialingProtocol():
    # We can do any kind of test we want in here...
    
    initial_port = 7750
-   clients = [Client('localhost', initial_port+1, initial_port-1), Client('localhost', initial_port+1, initial_port)]
-   front = FrontServer('localhost', initial_port+2, initial_port+1)
-   middle = MiddleServer('localhost', initial_port+3, initial_port+2)
-   spreading = SpreadingServer([('localhost', initial_port+4)], initial_port+3)
+   clients = [Client('', initial_port+1, initial_port-1), Client('', initial_port+1, initial_port)]
+   front = FrontServer('', initial_port+2, initial_port+1)
+   middle = MiddleServer('', initial_port+3, initial_port+2)
+   spreading = SpreadingServer([('', initial_port+4)], initial_port+3)
    dead = DeadDrop(initial_port+4)
    
    # Set the keys in the client
@@ -94,24 +94,6 @@ def testDialingProtocol():
    print("RECEIVED INVITATION: " + invitation.getPayload())
 
 
-class Torzela:
-   def __init__(self, port):
-      self.front = FrontServer('localhost', port+1, port)
-      self.middle = MiddleServer('localhost', port+2, port+1)
-      self.spreading = SpreadingServer([('localhost', port+3)], port+1)
-
-      self.front.chainServersPublicKeys = [self.front.getPublicKey(), 
-                                          self.middle.getPublicKey(), 
-                                          self.spreading.getPublicKey()]
-      
-      self.dead = DeadDrop(port+3)
-
-      self.front.chainServersPublicKeys.append(self.dead.getPublicKey())
-      return
-
-
-if __name__ == "__main__":
-   Torzela(7750)
 
 
    # testDialingProtocol()

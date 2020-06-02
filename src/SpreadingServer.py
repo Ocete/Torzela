@@ -79,7 +79,7 @@ class SpreadingServer:
 
       # Listen for incoming connections
       self.listenSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.listenSock.bind(('localhost', self.localPort))
+      self.listenSock.bind(('', self.localPort))
       self.listenSock.listen(10)
    
       while True:

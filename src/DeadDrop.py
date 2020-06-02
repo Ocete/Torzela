@@ -49,7 +49,7 @@ class DeadDrop:
    def listen(self):
       # Listen for incoming connections
       listenSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      listenSock.bind(('localhost', self.localPort))
+      listenSock.bind(('', self.localPort))
       listenSock.listen(10)
 
       while True:
@@ -138,7 +138,7 @@ class DeadDrop:
 
          for invitation in self.invitations:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            tempSock.connect(('localhost', int(clientPort)))
+            tempSock.connect(('', int(clientPort)))
             data = str(invitation).encode("utf-8")
             tempSock.sendall(data)
             tempSock.close()
