@@ -166,7 +166,7 @@ class FrontServer:
             
             # Decrypt one layer of the onion message
             clientLocalKey, newPayload = TU.decryptOnionLayer(
-                  self.__privateKey, payload.decode('latin_1'), serverType=0)
+                  self.__privateKey, payload, serverType=0)
             clientMsg.setPayload(newPayload)
             
             # Save the message data

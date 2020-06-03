@@ -126,6 +126,11 @@ class Client:
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
+         print('young thug debug')
+         print(self.chainServersPublicKeys)
+         print(self.chainServersPublicKeys)
+
+
          self.sock.listen(1) # listen for 1 connection
          conn, server_addr = self.sock.accept()
          recvStr = conn.recv(32768).decode("utf-8")
