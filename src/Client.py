@@ -185,8 +185,11 @@ class Client:
    # message and round an integer. Returns a string
    def preparePayload(self, data):
       self.generateTemporaryKeys()
-
+      print('payyy')
+      print(data)
       ppk = self.partnerPublicKey
+      print('ppk')
+      print(ppk)
 
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
@@ -270,8 +273,6 @@ class Client:
       
       # This 1 means we are sending the message towards a dead drop 
       msg.setNetInfo(1)
-      print('yahoo')
-      print(self.partnerPublicKeys)
       # Connect to next server
       tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       tempSock.connect((self.serverIP, self.serverPort))
