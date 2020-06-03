@@ -186,10 +186,9 @@ class Client:
    def preparePayload(self, data):
       self.generateTemporaryKeys()
       print('payyy')
-      print(data)
-      ppk = self.partnerPublicKey
-      print('ppk')
-      print(ppk)
+      print(self.chainServersPublicKeys)
+      print(self.deadDropServersPublicKeys)
+
 
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
