@@ -143,7 +143,7 @@ class FrontServer:
                data = pickle.dumps(data)
                message = Message()
                message.setPayload(data)
-               message.netinfo(10)
+               message.netinfo = 10
                sock.sendall(str(message).encode('utf-8'))
                sock.close()
             
