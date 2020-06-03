@@ -122,6 +122,9 @@ def deserializePrivateKey(privateKey):
 #     And DD is the deadDrop
 # payload is a string, the rest of returned arguments are intergers or keys
 def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
+   print('hi')
+   print(serverPrivateKey)
+   print(msgPayload)
    ppk, payload = msgPayload.split("#", maxsplit=1)
    ppk = deserializePublicKey(ppk)
    payload = payload.encode("latin_1")
