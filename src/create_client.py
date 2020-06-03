@@ -11,11 +11,14 @@ import time
 
 
 if __name__ == "__main__":
-    torzella_port = int(input('Enter Torzella Network Port: '))
+    # torzella_port = int(input('Enter Torzella Network Port: '))
 
     port = int(input('Enter port to host local messaging client: '))
-    name = str(input('Enter Your Name: '))
+    # name = str(input('Enter Your Name: '))
     
+    torzella_port = 7050
+    name = 'Gangll'
+
     client = Client('', torzella_port, port, client_name=name)
     
     print(f'Welcome to Torzela {name}!')
