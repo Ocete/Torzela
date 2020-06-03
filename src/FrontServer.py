@@ -218,7 +218,7 @@ class FrontServer:
          # Tell all the clients that a new round just started
          firstMsg = Message()
          firstMsg.setNetInfo(5)
-         for clientIpAndPort, clientPK in self.clientList:
+         for clientIpAndPort, clientPK, clientName in self.clientList:
             tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             tempSock.connect((clientIpAndPort[0], int(clientIpAndPort[1])))
             tempSock.sendall(str.encode(str(firstMsg)))
