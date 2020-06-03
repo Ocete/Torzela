@@ -136,9 +136,7 @@ class Client:
          # New Potential Partner Joined Network
          if msg.getNetInfo() == 10:
             data = msg.getPayload()
-            print(data)
             data = pickle.loads(ast.literal_eval(data))
-            print(data)
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
             print(f'{new_client_name} joined the Torzela gang')
             self.partnerPublicKeys.append((new_client_name, new_client_pk, new_client_port))
@@ -201,6 +199,8 @@ class Client:
       # Before encryption: "myChain#deadDrop#data"
       # After encryption: "deadDropServer#serialized_pk#encrypted_data"
       data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
+      print(self.deadDropServerIndex)
+      print(self.deadDropServersPublicKeys)
       server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
       local_sk, local_pk = self.temporaryKeys[-1]
       sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
