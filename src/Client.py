@@ -267,8 +267,6 @@ class Client:
       # Connect to next server
       tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       tempSock.connect((self.serverIP, self.serverPort))
-      print('ggggg')
-      print(msg.payload)
       # Send our message to the server
       tempSock.sendall(str(msg).encode("utf-8"))
       tempSock.close()

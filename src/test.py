@@ -39,9 +39,9 @@ def testNetwork():
 
    # Prepare the message
    c.newMessage("Hello Torzela!")   
-   c_partner.newMessage("Hello friend!")
-   c.newMessage("Second round!")   
-   c.newMessage("Round three baby!")
+   # c_partner.newMessage("Hello friend!")
+   # c.newMessage("Second round!")   
+   # c.newMessage("Round three baby!")
    
    # When the next round starts, the Front Server will notify the client,
    # who will send the message "Hello Torzela". Right now, the message will go
