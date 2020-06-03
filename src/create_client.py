@@ -16,7 +16,7 @@ if __name__ == "__main__":
     port = int(input('Enter port to host local messaging client: '))
     name = str(input('Enter Your Name: '))
     
-    client = Client('', 7750, torzella_port, client_name=name)
+    client = Client('', torzella_port, port, client_name=name)
     
     print(f'Welcome to Torzela {name}!')
 
