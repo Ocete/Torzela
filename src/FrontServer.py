@@ -300,7 +300,7 @@ class FrontServer:
       # Send each response back to the correct client
       for clientPK, msg in zip(self.clientPublicKeys, self.clientMessages):
          # Find the client ip and port using the clients keys
-         matches = [ (ip, port) for ((ip, port), pk) in self.clientList 
+         matches = [ (ip, port) for ((ip, port), pk, name) in self.clientList 
                      if clientPK == pk]
          if len(matches) == 0:
             print("Front server error: couldn't find client where to send the response")
