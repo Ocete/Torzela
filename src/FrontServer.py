@@ -139,7 +139,7 @@ class FrontServer:
             for clientEntry in self.clientList:
                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                sock.connect((clientEntry[0][0], int(clientEntry[0][1])))
-               data = {'client_name': client_name, 'client_pk': TU.serializePublicKey(clientPublicKey), 'client_port': clientPort}
+               data = {'client_name': client_name, 'client_pk': clientPublicKey, 'client_port': clientPort}
                data = pickle.dumps(data)
                message = Message()
                message.setPayload(data)
