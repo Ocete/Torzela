@@ -142,8 +142,8 @@ class FrontServer:
                data = {'client_name': client_name, 'client_pk': clientPublicKey, 'client_port': clientPort}
                data = pickle.dumps(data)
                message = Message()
-               message.setPayload(data)
-               message.netinfo = 10
+               message.setPayload(str(data))
+               message.setNetInfo('10')
                sock.sendall(str(message).encode('utf-8'))
                sock.close()
             

@@ -302,7 +302,7 @@ class Client:
             tempSock.connect(('', partner[2]))
             message = Message()
             message.setPayload(f'Invitation from:{self.client_name}')
-            message.netinfo(11)
+            message.setNetInfo('11')
             # Send our message to the server
             tempSock.sendall(str(message).encode("utf-8"))
             tempSock.close()
