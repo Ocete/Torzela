@@ -137,8 +137,8 @@ class Client:
             data = msg.getPayload()
             print(data)
             print(type(data))
-
-            data = pickle.loads(unicode(data, 'utf-8'))
+            data = data.encode('utf-8')
+            # data = pickle.loads()
             print(data)
             print(type(data))
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
