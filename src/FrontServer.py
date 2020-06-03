@@ -138,7 +138,7 @@ class FrontServer:
             # Send new client's pk to all other clients
             for clientEntry in self.clientList:
                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-               sock.connect((clientEntry[0][0], clientEntry[0][1]))
+               sock.connect((clientEntry[0][0], int(clientEntry[0][1])))
                data = {'client_name': client_name, 'client_pk': TU.serializePublicKey(clientPublicKey), 'client_port': clientPort}
                data = pickle.dumps(data)
                message = Message()
