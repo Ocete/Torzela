@@ -135,7 +135,8 @@ class FrontServer:
          # Build the entry for the client. See clientList above
          # Store the public key as a string
          clientEntry = ((clientIP, clientPort), clientPublicKey, client_name)
-
+         print(clientPublicKey)
+         print('dont')
          if clientEntry not in self.clientList:
             # Send new client's pk to all other clients
             for clientEntry in self.clientList:
