@@ -33,12 +33,14 @@ def testNetwork():
    ppk_middleServer = middle.getPublicKey()
    ppk_spreadingServer = spreading.getPublicKey()
    ppk_deadDropServer = dead.getPublicKey()
-   
    front.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
    front.deadDropServersPublicKeys = [ ppk_deadDropServer ]
 
    # Prepare the message
    c.newMessage("Hello Torzela!")   
+   c.partnerPublicKey = c_partner.publicKey
+   c_partner.partnerPublicKey = c.publicKey
+
    # c_partner.newMessage("Hello friend!")
    # c.newMessage("Second round!")   
    # c.newMessage("Round three baby!")
