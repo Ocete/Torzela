@@ -124,8 +124,10 @@ def deserializePrivateKey(privateKey):
 def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
    print('hi')
    print(serverPrivateKey)
-   print(msgPayload)
    ppk, payload = msgPayload.split("#", maxsplit=1)
+   print(ppk)
+   print('fack')
+   print(payload)
    ppk = deserializePublicKey(ppk)
    payload = payload.encode("latin_1")
    sharedSecret = computeSharedSecret(serverPrivateKey, ppk)
