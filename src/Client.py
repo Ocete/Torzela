@@ -136,6 +136,7 @@ class Client:
          if msg.getNetInfo() == 10:
             data = msg.getPayload()
             print(data)
+            print(type(data))
             data = pickle.loads(data)
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
             print(f'{new_client_name} joined the Torzela gang')
