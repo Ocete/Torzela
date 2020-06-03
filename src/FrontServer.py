@@ -128,7 +128,7 @@ class FrontServer:
       # Check if the packet is for setting up a connection
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
-         clientPort, clientPublicKey, client_name = clientMsg.getPayload().split("|")
+         clientPort, clientPublicKey, client_name = clientMsg.getPayload().split("#")
          
          # Build the entry for the client. See clientList above
          # Store the public key as a string

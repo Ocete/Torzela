@@ -83,7 +83,7 @@ class Client:
       setupMsg = Message()
       setupMsg.setNetInfo(0)
       serializedKey = TU.serializePublicKey(self.publicKey)
-      setupMsg.setPayload("{}|{}|{}".format(self.localPort, serializedKey, self.client_name))
+      setupMsg.setPayload("{}#{}#{}".format(self.localPort, serializedKey, self.client_name))
       print('payyyyyyyload')
       print(setupMsg.getPayload())
  
@@ -126,11 +126,6 @@ class Client:
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
-         print('young thug debug')
-         print(self.chainServersPublicKeys)
-         print(self.partnerPublicKeys)
-
-
          self.sock.listen(1) # listen for 1 connection
          conn, server_addr = self.sock.accept()
          recvStr = conn.recv(32768).decode("utf-8")
@@ -185,10 +180,6 @@ class Client:
    # message and round an integer. Returns a string
    def preparePayload(self, data):
       self.generateTemporaryKeys()
-      print('payyy')
-      print(self.chainServersPublicKeys)
-      print(self.deadDropServersPublicKeys)
-
 
       # If we are not currently talking to anyone, create a fake message
       # and a fake reciever
