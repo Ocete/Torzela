@@ -21,8 +21,8 @@ def testNetwork():
    
    initial_port = 7630
    
-   c = Client('', initial_port+1, initial_port)
-   c_partner = Client('', initial_port+1, initial_port-1)
+   c = Client('', initial_port+1, initial_port, client_name='gang')
+   c_partner = Client('', initial_port+1, initial_port-1='buhhh')
    front = FrontServer('', initial_port+2, initial_port+1)
    middle = MiddleServer('', initial_port+3, initial_port+2)
    spreading = SpreadingServer([('', initial_port+4)], initial_port+3)
