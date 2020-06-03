@@ -278,6 +278,8 @@ class Client:
       recvStr = conn.recv(32768).decode("utf-8")
       conn.close()
 
+      print(recvStr)
+      
       # Convert response to message
       m = Message()
       m.loadFromString(recvStr)
