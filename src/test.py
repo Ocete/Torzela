@@ -54,6 +54,8 @@ def testNetwork():
    # it will just be sent back, so we should get "Hello Torzela!" here
    time.sleep(50000)
 
+if __name__ == "__main__":
+   testNetwork()
 
 def testDialingProtocol():
    # This is the setup we have below with the port number that
