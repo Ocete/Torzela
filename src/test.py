@@ -33,14 +33,9 @@ def testNetwork():
    ppk_middleServer = middle.getPublicKey()
    ppk_spreadingServer = spreading.getPublicKey()
    ppk_deadDropServer = dead.getPublicKey()
-   c.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-   c.deadDropServersPublicKeys = [ ppk_deadDropServer ]
-   c.partnerPublicKey = c_partner.publicKey
    
-   # Configure your partner
-   c_partner.partnerPublicKey = c.publicKey
-   c_partner.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
-   c_partner.deadDropServersPublicKeys = [ TU.deserializePublicKey(ppk_deadDropServer) ]
+   front.chainServersPublicKeys = [ ppk_frontServer, ppk_middleServer, ppk_spreadingServer]
+   front.deadDropServersPublicKeys = [ ppk_deadDropServer ]
 
    # Prepare the message
    c.newMessage("Hello Torzela!")   
