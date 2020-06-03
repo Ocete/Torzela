@@ -199,8 +199,6 @@ class Client:
       # Before encryption: "myChain#deadDrop#data"
       # After encryption: "deadDropServer#serialized_pk#encrypted_data"
       data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
-      print(self.deadDropServerIndex)
-      print(self.deadDropServersPublicKeys)
       server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
       local_sk, local_pk = self.temporaryKeys[-1]
       sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
@@ -269,7 +267,7 @@ class Client:
       # Connect to next server
       tempSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       tempSock.connect((self.serverIP, self.serverPort))
-
+      print(msg.payload)
       # Send our message to the server
       tempSock.sendall(str(msg).encode("utf-8"))
       tempSock.close()
