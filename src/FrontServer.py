@@ -129,14 +129,11 @@ class FrontServer:
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
          clientPort, clientPublicKey, client_name = clientMsg.getPayload().split("|")
-         print('dsf')
-         print(clientMsg.payload)
          
          # Build the entry for the client. See clientList above
          # Store the public key as a string
          clientEntry = ((clientIP, clientPort), clientPublicKey, client_name)
-         print(clientPublicKey)
-         print('dont')
+
          if clientEntry not in self.clientList:
             # Send new client's pk to all other clients
             for clientEntry in self.clientList:
@@ -169,7 +166,7 @@ class FrontServer:
             
             # Decrypt one layer of the onion message
             clientLocalKey, newPayload = TU.decryptOnionLayer(
-                  self.__privateKey, payload, serverType=0)
+                  self.__privateKey, payload.decode('latin_1'), serverType=0)
             clientMsg.setPayload(newPayload)
             
             # Save the message data
