@@ -84,6 +84,8 @@ class Client:
       setupMsg.setNetInfo(0)
       serializedKey = TU.serializePublicKey(self.publicKey)
       setupMsg.setPayload("{}|{}|{}".format(self.localPort, serializedKey, self.client_name))
+      print('payyyyyyyload')
+      print(setupMsg.getPayload())
  
       self.connectionMade = False
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -120,7 +122,7 @@ class Client:
 
       # Create the listening socket
       self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.sock.bind(('localhost', self.localPort))
+      self.sock.bind(('', self.localPort))
 
       # Wait for a round to start, a message will be sent by the Front Server
       while True:
