@@ -123,8 +123,10 @@ def deserializePrivateKey(privateKey):
 # payload is a string, the rest of returned arguments are intergers or keys
 def decryptOnionLayer(serverPrivateKey, msgPayload, serverType):
    ppk, payload = msgPayload.split("#", maxsplit=1)
+   print('hit')
+   print(msgPayload)
    ppk = deserializePublicKey(ppk)
-   print(ppk, payload)
+   # print(ppk, payload)
    payload = payload.encode("latin_1")
    sharedSecret = computeSharedSecret(serverPrivateKey, ppk)
    decryptedPayload = decryptMessage(sharedSecret, payload)
