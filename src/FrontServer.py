@@ -129,6 +129,8 @@ class FrontServer:
       if clientMsg.getNetInfo() == 0:
          # Add client's public key to our list of clients
          clientPort, clientPublicKey, client_name = clientMsg.getPayload().split("|")
+         print('dsf')
+         print(clientMsg.payload)
          
          # Build the entry for the client. See clientList above
          # Store the public key as a string
