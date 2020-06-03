@@ -212,6 +212,12 @@ class Client:
       data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
                                   self.chainServersPublicKeys,
                                   data)
+
+
+
+      print('fuck')
+      ppk, payload = msgPayload.split("#", maxsplit=1)
+      ppk = deserializePublicKey(ppk)
       
       return data
    
