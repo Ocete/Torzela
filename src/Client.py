@@ -139,7 +139,6 @@ class Client:
             print(type(data))
             print(type(data.decode('utf-8')))
 
-            data = pickle.loads(data)
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
             print(f'{new_client_name} joined the Torzela gang')
             self.partnerPublicKeys.append((new_client_name, new_client_pk, new_client_port))
