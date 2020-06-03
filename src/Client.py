@@ -8,6 +8,7 @@ from message import Message
 import TorzelaUtils as TU
 import queue
 import pickle
+import ast
 
 class Client:   
    # Configure the client with the IP and Port of the next server
@@ -136,7 +137,7 @@ class Client:
          if msg.getNetInfo() == 10:
             data = msg.getPayload()
             print(data)
-            data = pickle.loads(str(data, 'utf-8'))
+            data = pickle.loads(ast.literal_eval(data))
             print(data)
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
             print(f'{new_client_name} joined the Torzela gang')
