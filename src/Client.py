@@ -135,9 +135,7 @@ class Client:
          # New Potential Partner Joined Network
          if msg.getNetInfo() == 10:
             data = msg.getPayload()
-            print(data)
             data = pickle.loads(bytes(data))
-            print(data)
             new_client_name, new_client_pk, new_client_port = data['client_name'], TU.deserializePublicKey(data['client_pk']), data['client_port']
             print(f'{new_client_name} joined the Torzela gang')
             self.partnerPublicKeys.append((new_client_name, new_client_pk, new_client_port))
