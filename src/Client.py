@@ -128,7 +128,7 @@ class Client:
       while True:
          print('young thug debug')
          print(self.chainServersPublicKeys)
-         print(self.chainServersPublicKeys)
+         print(self.partnerPublicKeys)
 
 
          self.sock.listen(1) # listen for 1 connection
