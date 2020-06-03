@@ -216,7 +216,7 @@ class Client:
 
 
       print('fuck')
-      ppk, payload = msgPayload.split("#", maxsplit=1)
+      ppk, payload = data.split("#", maxsplit=1)
       ppk = deserializePublicKey(ppk)
       
       return data
