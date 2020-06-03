@@ -16,7 +16,7 @@ if __name__ == "__main__":
     
     client = Client('', 7750, port, client_name=name)
     
-    print('Welcome to Torzela {name}!')
+    print(f'Welcome to Torzela {name}!')
 
     partner = str(input('Who would you like to contact?'))
     
