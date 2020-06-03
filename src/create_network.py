@@ -27,7 +27,7 @@ class Torzela:
 
 
 if __name__ == "__main__":
-   port = int(input('Select port to create network: '))
+   #port = int(input('Select port to create network: '))
    port = 7050
    chain = Torzela(port)
 
