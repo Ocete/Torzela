@@ -152,10 +152,7 @@ class FrontServer:
          chain_pks = [TU.serializePublicKey(pk) for pk in self.chainServersPublicKeys]
          dead_drop_pks = [TU.serializePublicKey(pk) for pk in self.deadDropServersPublicKeys]
          pks = {'chain_pks': chain_pks, 'dead_drop_pks': dead_drop_pks}
-         print(pks)
          data = pickle.dumps(pks)
-         print(data)
-         print(pickle.loads(data))
          conn.sendall(data)
          conn.close()
 
