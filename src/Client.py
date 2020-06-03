@@ -188,7 +188,6 @@ class Client:
          _, ppk = TU.generateKeys(self.keyGenerator)
          data = TU.createRandomMessage(32)
       
-      print(data)
       # Compute the message for your partner   
       sharedSecret = TU.computeSharedSecret(self.__privateKey, ppk)
       deadDrop, self.deadDropServerIndex = self.computeDeadDrop(sharedSecret)
@@ -200,6 +199,8 @@ class Client:
       # Before encryption: "myChain#deadDrop#data"
       # After encryption: "deadDropServer#serialized_pk#encrypted_data"
       data = "{}#{}#{}".format(self.myChain, deadDrop, data.decode("latin_1"))
+      print(self.deadDropServerIndex)
+      print(self.deadDropServersPublicKeys)
       server_pk = self.deadDropServersPublicKeys[self.deadDropServerIndex]
       local_sk, local_pk = self.temporaryKeys[-1]
       sharedSecret = TU.computeSharedSecret(local_sk, server_pk)  
@@ -212,12 +213,6 @@ class Client:
       data = TU.applyOnionRouting(self.temporaryKeys[:-1], 
                                   self.chainServersPublicKeys,
                                   data)
-
-
-
-      print('fuck')
-      ppk, payload = data.split("#", maxsplit=1)
-      ppk = deserializePublicKey(ppk)
       
       return data
    
